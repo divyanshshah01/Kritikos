@@ -44,9 +44,9 @@ def test_long_ontology_context_samples_across_document():
     assert "BEGIN" in context
     assert "MIDDLE" in context
     assert "END" in context
-    assert "Chunking 1/" in context
-    assert "Chunking 3/" in context
-    assert "Chunking 5/" in context
+    assert "Chunk 1/" in context
+    assert "Chunk 3/" in context
+    assert "Chunk 5/" in context
 
 
 def test_very_long_ontology_context_selects_representative_chunks():
@@ -62,7 +62,7 @@ def test_very_long_ontology_context_selects_representative_chunks():
     assert len(context) <= generator.MAX_TEXT_LENGTH_FOR_LLM
     assert "BEGIN" in context
     assert "FINALEND" in context
-    assert context.count("--- 文档 1 / Chunking") == generator.MAX_LONG_TEXT_CHUNKS
+    assert context.count("--- Document 1 / Chunk") == generator.MAX_LONG_TEXT_CHUNKS
 
 
 def test_ontology_generation_does_not_cap_structured_output_tokens():

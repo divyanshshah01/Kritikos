@@ -451,7 +451,7 @@ const loadHistory = async () => {
       projects.value = response.data || []
     }
   } catch (error) {
-    console.error('加载历史项目失败:', error)
+    console.error('Failed to load historical projects:', error)
     projects.value = []
   } finally {
     loading.value = false

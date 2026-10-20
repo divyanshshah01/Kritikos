@@ -27,8 +27,8 @@ from ..services.simulation_runner import SimulationRunner, RunnerStatus
 from ..services.zep_graph_memory_updater import ZepGraphMemoryManager
 from ..utils.llm_client import LLMResponseError
 
-# 获取 day志Device
-logger = get_logger('mirofish.api')
+# Logger
+logger = get_logger('kritikos.api')
 _build_locks: dict[str, threading.Lock] = {}
 _build_locks_guard = threading.Lock()
 
@@ -299,8 +299,8 @@ def generate_ontology():
         project_name = request.form.get('project_name', 'Unnamed Project')
         additional_context = request.form.get('additional_context', '')
         
-        logger.debug(f"项目名称: {project_name}")
-        logger.debug(f"模Draft需Request: {simulation_requirement[:100]}...")
+        logger.debug(f"Project name: {project_name}")
+        logger.debug(f"Simulation requirement: {simulation_requirement[:100]}...")
         
         if not simulation_requirement:
             return jsonify({
@@ -319,7 +319,7 @@ def generate_ontology():
         # Create项目
         project = ProjectManager.create_project(name=project_name)
         project.simulation_requirement = simulation_requirement
-        logger.info(f"Create项目: {project.project_id}")
+        logger.info(f"Create project: {project.project_id}")
         
         # 保存文件并提取文本
         document_texts = []
@@ -354,10 +354,10 @@ def generate_ontology():
         # 保存提取的文本
         project.total_text_length = len(all_text)
         ProjectManager.save_extracted_text(project.project_id, all_text)
-        logger.info(f"Text extraction completed, total {len(all_text)} 字Symbol")
+        logger.info(f"Text extraction completed, total {len(all_text)} characters")
         
         # 生成本体
-        logger.info("InvokeUse LLM 生成本体定义...")
+        logger.info("Calling LLM to generate ontology definition...")
         generator = OntologyGenerator()
         ontology = generator.generate(
             document_texts=document_texts,
@@ -368,7 +368,7 @@ def generate_ontology():
         # 保存本体到项目
         entity_count = len(ontology.get("entity_types", []))
         edge_count = len(ontology.get("edge_types", []))
-        logger.info(f"Ontology generation completed: {entity_count} entitiesClass型, {edge_count} relationship types")
+        logger.info(f"Ontology generation completed: {entity_count} entity types, {edge_count} relationship types")
         
         project.ontology = {
             "entity_types": ontology.get("entity_types", []),
@@ -377,7 +377,7 @@ def generate_ontology():
         project.analysis_summary = ontology.get("analysis_summary", "")
         project.status = ProjectStatus.ONTOLOGY_GENERATED
         ProjectManager.save_project(project)
-        logger.info(f"=== Ontology generation completed === 项目ID: {project.project_id}")
+        logger.info(f"=== Ontology generation completed === Project ID: {project.project_id}")
         
         return jsonify({
             "success": True,
@@ -475,19 +475,19 @@ def _build_graph_impl():
             "data": {
                 "project_id": "proj_xxxx",
                 "task_id": "task_xxxx",
-                "message": "图谱构建任务already 启动"
+                "message": "Graph construction task started"
             }
         }
     """
     try:
-        logger.info("=== 开Start构建图谱 ===")
+        logger.info("=== Start building graph ===")
         
         # 检查配置
         errors = []
         if not Config.ZEP_API_KEY:
             errors.append(t('api.zepApiKeyMissing'))
         if errors:
-            logger.error(f"配置错误: {errors}")
+            logger.error(f"Configuration error: {errors}")
             return jsonify({
                 "success": False,
                 "error": t('api.configError', details="; ".join(errors))
@@ -496,7 +496,7 @@ def _build_graph_impl():
         # 解析请Request
         data = request.get_json() or {}
         project_id = data.get('project_id')
-        logger.debug(f"请Request参数: project_id={project_id}")
+        logger.debug(f"Request parameters: project_id={project_id}")
         
         if not project_id:
             return jsonify({
@@ -582,8 +582,8 @@ def _build_graph_impl():
                 }
             })
         
-        # 获取配置
-        graph_name = data.get('graph_name', project.name or 'MiroFish Graph')
+        # Get config
+        graph_name = data.get('graph_name', project.name or 'Kritikos Graph')
         chunk_size = data.get('chunk_size', project.chunk_size or Config.DEFAULT_CHUNK_SIZE)
         chunk_overlap = data.get('chunk_overlap', project.chunk_overlap or Config.DEFAULT_CHUNK_OVERLAP)
         if not isinstance(chunk_size, int) or chunk_size <= 0:
@@ -637,7 +637,7 @@ def _build_graph_impl():
         # Create异步任务
         task_manager = TaskManager()
         task_id = task_manager.create_task(f"构建图谱: {graph_name}")
-        logger.info(f"Create图谱构建任务: task_id={task_id}, project_id={project_id}")
+        logger.info(f"Created graph build task: task_id={task_id}, project_id={project_id}")
         
         # 更新项目状态
         project.status = ProjectStatus.GRAPH_BUILDING
@@ -650,9 +650,9 @@ def _build_graph_impl():
         # 启动after 台任务
         def build_task():
             set_locale(current_locale)
-            build_logger = get_logger('mirofish.build')
+            build_logger = get_logger('kritikos.build')
             try:
-                build_logger.info(f"[{task_id}] 开Start构建图谱...")
+                build_logger.info(f"[{task_id}] Starting graph construction...")
                 task_manager.update_task(
                     task_id, 
                     status=TaskStatus.PROCESSING,
@@ -774,7 +774,7 @@ def _build_graph_impl():
                 
                 node_count = graph_data.get("node_count", 0)
                 edge_count = graph_data.get("edge_count", 0)
-                build_logger.info(f"[{task_id}] 图谱构建完成: graph_id={graph_id}, nodes={node_count}, edges={edge_count}")
+                build_logger.info(f"[{task_id}] Graph construction completed: graph_id={graph_id}, nodes={node_count}, edges={edge_count}")
 
                 # Publish local project/task terminal state under the same
                 # lifecycle lock used by reset/delete/build claims. This
@@ -800,7 +800,7 @@ def _build_graph_impl():
                 
             except Exception as e:
                 # 更新项目状态为失败
-                build_logger.error(f"[{task_id}] 图谱构建失败: {str(e)}")
+                build_logger.error(f"[{task_id}] Graph construction failed: {str(e)}")
                 build_logger.debug(traceback.format_exc())
                 
                 with _project_build_lock(project_id):

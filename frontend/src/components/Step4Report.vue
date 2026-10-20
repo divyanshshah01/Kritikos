@@ -851,14 +851,13 @@ const parseInterview = (text) => {
           interview.redditAnswer = redditMatch[1].trim()
         }
         
-        // 平台回退逻辑 (兼容旧Format: 只has一平台标记的情况) 
+        // Fallback logic for single platform responses
         if (!twitterMatch && redditMatch) {
-          // 只has Reddit 回答, 仅在Non占位文本 hour复制为Default认显Example
-          if (interview.redditAnswer && interview.redditAnswer !== ' (该平台not 获得回复) ') {
+          if (interview.redditAnswer && !isPlaceholderText(interview.redditAnswer)) {
             interview.twitterAnswer = interview.redditAnswer
           }
         } else if (twitterMatch && !redditMatch) {
-          if (interview.twitterAnswer && interview.twitterAnswer !== ' (该平台not 获得回复) ') {
+          if (interview.twitterAnswer && !isPlaceholderText(interview.twitterAnswer)) {
             interview.redditAnswer = interview.twitterAnswer
           }
         } else if (!twitterMatch && !redditMatch) {
@@ -1327,11 +1326,10 @@ const InterviewDisplay = {
       return text.substring(0, 400) + '...'
     }
     
-    // 检查is no为平台占位文本
     const isPlaceholderText = (text) => {
       if (!text) return true
       const t = text.trim()
-      return t === ' (该平台not 获得回复) ' || t === '(该平台not 获得回复)' || t === '[none回复]'
+      return t === '(No response on this platform)' || t === ' (该平台not 获得回复) ' || t === '(该平台not 获得回复)' || t === '[none回复]'
     }
 
     // 尝Test按问题编号 minCut回答
@@ -1471,7 +1469,7 @@ const InterviewDisplay = {
         
         // Selection Reason - 选择理由
         props.result.interviews[activeIndex.value]?.selectionReason && h('div', { class: 'selection-reason' }, [
-          h('div', { class: 'reason-label' }, '选择理由'),
+          h('div', { class: 'reason-label' }, 'Selection Rationale'),
           h('div', { class: 'reason-content' }, props.result.interviews[activeIndex.value].selectionReason)
         ]),
         
@@ -1780,8 +1778,7 @@ const activeStep = computed(() => {
   const doneSteps = steps.filter(s => s.status === 'done')
   if (doneSteps.length > 0) return doneSteps[doneSteps.length - 1]
   
-  // no则Return第一步骤
-  return steps[0] || { noLabel: '--', title: '等Pending开Start', status: 'todo', meta: '' }
+  return steps[0] || { noLabel: '--', title: 'Pending', status: 'todo', meta: '' }
 })
 
 const workflowSteps = computed(() => {

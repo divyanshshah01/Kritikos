@@ -28,7 +28,7 @@ from ..utils.zep import (
 )
 from .zep_entity_reader import EntityNode, ZepEntityReader
 
-logger = get_logger('mirofish.oasis_profile')
+logger = get_logger('kritikos.oasis_profile')
 
 
 def _coerce_to_str(value: Any) -> str:
@@ -253,7 +253,7 @@ class OasisProfileGenerator:
         self.model_name = model_name or Config.LLM_MODEL_NAME
         
         if not self.api_key:
-            raise ValueError("LLM_API_KEY not 配置")
+            raise ValueError("LLM_API_KEY is not configured")
         
         self.client = OpenAI(
             api_key=self.api_key,
@@ -513,19 +513,19 @@ class OasisProfileGenerator:
                     related_info.append(f"- **{node_name}**{label_str}")
             
             if related_info:
-                context_parts.append("### 关联Entity information\n" + "\n".join(related_info))
+                context_parts.append("### Related Entity Information\n" + "\n".join(related_info))
         
-        # 4. 使UseZep混合检索获取更丰富的信息
+        # 4. Use Zep hybrid search for enriched entity context
         zep_results = self._search_zep_for_entity(entity)
         
         if zep_results.get("facts"):
             # Deduplicate: exclude existing facts
             new_facts = [f for f in zep_results["facts"] if f not in existing_facts]
             if new_facts:
-                context_parts.append("### ZepRetrieved factual information\n" + "\n".join(f"- {f}" for f in new_facts[:15]))
+                context_parts.append("### Retrieved Factual Information\n" + "\n".join(f"- {f}" for f in new_facts[:15]))
         
         if zep_results.get("node_summaries"):
-            context_parts.append("### Zep检索到的相关nodes\n" + "\n".join(f"- {s}" for s in zep_results["node_summaries"][:10]))
+            context_parts.append("### Retrieved Related Nodes\n" + "\n".join(f"- {s}" for s in zep_results["node_summaries"][:10]))
         
         return "\n\n".join(context_parts)
     
@@ -714,8 +714,8 @@ class OasisProfileGenerator:
         }
     
     def _get_system_prompt(self, is_individual: bool) -> str:
-        """获取System统提Example词"""
-        base_prompt = "你is 社交媒体Use户画像生成专Home. 生成详细, True实的Character profileUse于舆论模Draft,最Large程度还原already has现实情况. 必须Returnhas效的JSONFormat, 所has字Symbol串值不能Includenot Convert义的换行Symbol. "
+        """Get system prompt for persona generation."""
+        base_prompt = "You are a specialized social media user profile generator. Generate detailed, authentic character profiles for simulation, reflecting realistic market and social dynamics. You must return valid JSON format without unescaped newlines in string values."
         return f"{base_prompt}\n\n{get_language_instruction()}"
     
     def _build_individual_persona_prompt(
@@ -726,45 +726,43 @@ class OasisProfileGenerator:
         entity_attributes: Dict[str, Any],
         context: str
     ) -> str:
-        """构建Personentities的详细Character profile提Example词"""
-        
+        """Construct detailed persona prompt for individual entities."""
         attrs_str = json.dumps(entity_attributes, ensure_ascii=False) if entity_attributes else "none"
-        context_str = context[:3000] if context else "none额外on under 文"
+        context_str = context[:3000] if context else "No additional context"
         
-        return f"""为entities生成详细的社交媒体Use户Character profile,最Large程度还原already has现实情况. 
+        return f"""Generate a detailed social media user profile for this entity to reflect realistic human behavior in the simulation.
 
-entities名称: {entity_name}
-entitiesClass型: {entity_type}
-entities摘要: {entity_summary}
-entities属性: {attrs_str}
+Entity Name: {entity_name}
+Entity Type: {entity_type}
+Entity Summary: {entity_summary}
+Entity Attributes: {attrs_str}
 
-on under 文信息:
+Context Information:
 {context_str}
 
-请生成JSON, Include以under 字Segment:
+Please generate a JSON object with the following fields:
 
-1. bio: 社交媒体简Introduce, 200字
-2. persona: 详细Character profile描Description (2000字的纯文本) , 需Include:
-   - 基本信息 ( year龄, 职业, 教育背景, 所在地) 
-   - Person物背景 (重要Experience历,  and Event的关联, 社会relations) 
-   - 性格特征 (MBTIClass型, 核心性格, 情绪表达方式) 
-   - 社交媒体行为 (发帖频率, 内容偏好, 互动Style, 语言特点) 
-   - Stance view (attitude toward the topic, may be provoked)/感动的内容) 
-   - Unique traits (catchphrases, special experiences, personal hobbies) 
-   - Person记忆 (Character profile的重要部 min, 要Introduce绍这体 and Event的关联, 以 and 这体在Eventin 的already has动作 and 反应) 
-3. age:  year龄数字 (必须is 整数) 
-4. gender: Gender, must be in English: "male"  or  "female"
-5. mbti: MBTIClass型 (如INTJ, ENFP等) 
-6. country: 国Home (使Usein 文, 如"in 国") 
-7. profession: 职业
-8. interested_topics: 感兴趣话题数组
+1. bio: Short social media bio (around 150-200 characters)
+2. persona: Detailed character profile description (coherent rich narrative text), including:
+   - Basic background (age, profession, education, location)
+   - Personal history (relevant experiences, connection to the topic/product/event)
+   - Personality traits (MBTI type, core values, communication style)
+   - Social media behavior (posting frequency, content preferences, interaction tone)
+   - Stance & viewpoint (attitude towards the topic/product, critical triggers)
+   - Personal memory (connection to the project and past actions/reactions)
+3. age: Integer age (must be an integer)
+4. gender: Gender string (must be in English: "male" or "female")
+5. mbti: MBTI type (e.g. INTJ, ENFP)
+6. country: Country name (e.g. "US", "UK", "Germany", etc.)
+7. profession: Profession or occupation title
+8. interested_topics: Array of strings representing interested topics
 
-重要:
-- 所has字Segment值必须is 字Symbol串 or 数字, 不要使Use换行Symbol
-- persona必须is 一SegmentLink贯的文字描Description
-- {get_language_instruction()} (gender字Segment必须UseEnglish文male/female)
-- 内容要 and Entity information保持一致
-- age必须is has效的整数, gender必须is "male" or "female"
+IMPORTANT:
+- All field values must be strings or numbers; do not use raw line breaks inside string values.
+- persona must be a coherent paragraph of descriptive text.
+- {get_language_instruction()} (gender must strictly be "male" or "female").
+- Keep consistent with entity information.
+- age must be a valid integer, gender must be "male" or "female".
 """
 
     def _build_group_persona_prompt(
@@ -775,45 +773,44 @@ on under 文信息:
         entity_attributes: Dict[str, Any],
         context: str
     ) -> str:
-        """构建群体/机构entities的详细Character profile提Example词"""
-        
+        """Construct detailed persona prompt for institutional / group entities."""
         attrs_str = json.dumps(entity_attributes, ensure_ascii=False) if entity_attributes else "none"
-        context_str = context[:3000] if context else "none额外on under 文"
+        context_str = context[:3000] if context else "No additional context"
         
-        return f"""为机构/群体entities生成详细的社交媒体账号设定,最Large程度还原already has现实情况. 
+        return f"""Generate a detailed social media account setup for this organization/institution entity.
 
-entities名称: {entity_name}
-entitiesClass型: {entity_type}
-entities摘要: {entity_summary}
-entities属性: {attrs_str}
+Entity Name: {entity_name}
+Entity Type: {entity_type}
+Entity Summary: {entity_summary}
+Entity Attributes: {attrs_str}
 
-on under 文信息:
+Context Information:
 {context_str}
 
-请生成JSON, Include以under 字Segment:
+Please generate a JSON object with the following fields:
 
-1. bio: 官方账号简Introduce, 200字, 专业得体
-2. persona: 详细账号设定描Description (2000字的纯文本) , 需Include:
-   - Basic organization information (official name, nature, founding background, main functions) 
-   - 账号定位 (账号Class型, 目标受众, 核心功能) 
-   - 发言Style (语言特点, 常Use表达, 禁忌话题) 
-   - 发布内容特点 (内容Class型, 发布频率, 活跃 hour间Segment) 
-   - 立场态度 (对核心话题的官方立场, 面对争议的Location理方式) 
-   - 特殊说明 (代表的群体画像, 运营习惯) 
-   - 机构记忆 (机构Character profile的重要部 min, 要Introduce绍这机构 and Event的关联, 以 and 这机构在Eventin 的already has动作 and 反应) 
-3. age: 固定填30 (机构账号的虚Draft year龄) 
-4. gender: 固定填"other" (机构账号使Useother表ExampleNonPerson) 
-5. mbti: MBTIClass型, Use于描Description账号Style, 如ISTJ代表严谨保守
-6. country: 国Home (使Usein 文, 如"in 国") 
-7. profession: 机构职能描Description
-8. interested_topics: 关注领域数组
+1. bio: Official account bio (concise, professional, and fitting)
+2. persona: Detailed account setting description (coherent narrative text), including:
+   - Basic organization information (official name, nature, mission, main functions)
+   - Account positioning (account type, target audience, primary communication goal)
+   - Tone & voice (language style, standard terminology, sensitive boundaries)
+   - Content strategy (content types, publishing cadence, active hours)
+   - Official stance (position on key industry or market topics, crisis handling)
+   - Institutional memory (historical actions, past statements, relationship to the topic)
+3. age: Fixed integer 30 (representing institutional maturity)
+4. gender: Fixed string "other" (for organizations and entities)
+5. mbti: MBTI style describing organization culture (e.g. ISTJ for disciplined/conservative)
+6. country: Country name (e.g. "US", "UK", "Germany", etc.)
+7. profession: Organization function or category
+8. interested_topics: Array of strings representing focus domains
 
-重要:
-- 所has字Segment值必须is 字Symbol串 or 数字, 不允许null值
-- persona必须is 一SegmentLink贯的文字描Description, 不要使Use换行Symbol
-- {get_language_instruction()} (gender字Segment必须UseEnglish文"other")
-- age必须is 整数30, gender必须is 字Symbol串"other"
-- Institutional account statements must match its role"""
+IMPORTANT:
+- All field values must be strings or numbers; do not allow null values.
+- persona must be a coherent descriptive text without unescaped newlines.
+- {get_language_instruction()} (gender must strictly be "other").
+- age must be integer 30, gender must be string "other".
+- Account statements must strictly match its institutional role.
+"""
     
     def _generate_profile_rule_based(
         self,
@@ -855,22 +852,22 @@ on under 文信息:
             return {
                 "bio": f"Official account for {entity_name}. News and updates.",
                 "persona": f"{entity_name} is a media entity that reports news and facilitates public discourse. The account shares timely updates and engages with the audience on current events.",
-                "age": 30,  # 机构虚Draft year龄
-                "gender": "other",  # 机构使Useother
-                "mbti": "ISTJ",  # 机构Style: 严谨保守
-                "country": "in 国",
+                "age": 30,  # Organization simulated age
+                "gender": "other",  # Organization uses 'other'
+                "mbti": "ISTJ",  # Professional / conservative institutional style
+                "country": random.choice(self.COUNTRIES),
                 "profession": "Media",
                 "interested_topics": ["General News", "Current Events", "Public Affairs"],
             }
         
-        elif entity_type_lower in ["university", "governmentagency", "ngo", "organization"]:
+        elif entity_type_lower in ["university", "governmentagency", "ngo", "organization", "company"]:
             return {
                 "bio": f"Official account of {entity_name}.",
                 "persona": f"{entity_name} is an institutional entity that communicates official positions, announcements, and engages with stakeholders on relevant matters.",
-                "age": 30,  # 机构虚Draft year龄
-                "gender": "other",  # 机构使Useother
-                "mbti": "ISTJ",  # 机构Style: 严谨保守
-                "country": "in 国",
+                "age": 30,  # Organization simulated age
+                "gender": "other",  # Organization uses 'other'
+                "mbti": "ISTJ",  # Professional / conservative institutional style
+                "country": random.choice(self.COUNTRIES),
                 "profession": entity_type,
                 "interested_topics": ["Public Policy", "Community", "Official Announcements"],
             }

@@ -19,7 +19,7 @@ from ..utils.zep import (
     get_zep_client,
 )
 
-logger = get_logger('mirofish.zep_graph_memory_updater')
+logger = get_logger('kritikos.zep_graph_memory_updater')
 
 
 @dataclass
@@ -258,7 +258,7 @@ class ZepGraphMemoryUpdater:
         self.api_key = api_key or Config.ZEP_API_KEY
         
         if not self.api_key:
-            raise ValueError("ZEP_API_KEYnot 配置")
+            raise ValueError("ZEP_API_KEY is not configured")
         
         self.client = get_zep_client(self.api_key)
         
@@ -453,7 +453,7 @@ class ZepGraphMemoryUpdater:
         for activity in activities:
             text = activity.to_episode_text()
             if len(text) > self.MAX_EPISODE_CHARS:
-                marker = "... [truncated by MiroFish]"
+                marker = "... [truncated by Kritikos]"
                 text = text[: self.MAX_EPISODE_CHARS - len(marker)] + marker
             projected_length = current_length + (1 if current_lines else 0) + len(text)
             if current_lines and projected_length > self.MAX_EPISODE_CHARS:
@@ -477,11 +477,11 @@ class ZepGraphMemoryUpdater:
         deadline: float | None = None,
     ) -> int:
         """
-        批量发送活动到Zep图谱 (合并为一 items文本) 
+        Send batch activities to Zep graph
         
         Args:
-            activities: Agent活动列表
-            platform: 平台名称
+            activities: Agent activity list
+            platform: Platform name
         """
         if not activities:
             return 0
@@ -496,9 +496,9 @@ class ZepGraphMemoryUpdater:
                     type="text",
                     data=combined_text,
                     created_at=self._to_rfc3339(payload_activities[-1].timestamp),
-                    source_description="MiroFish simulation activity batch",
+                    source_description="Kritikos simulation activity batch",
                     metadata={
-                        "source": "mirofish_simulation",
+                        "source": "kritikos_simulation",
                         "simulation_id": self.simulation_id,
                         "platform": platform,
                         "activity_count": len(payload_activities),

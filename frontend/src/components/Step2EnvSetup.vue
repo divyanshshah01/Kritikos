@@ -677,17 +677,16 @@ const customMaxRounds = ref(40)   // Default认Push荐40 rounds
 
 // Watch stage to update phase
 watch(currentStage, (newStage) => {
-  if (newStage === '生成AgentCharacter profile' || newStage === 'generating_profiles') {
+  if (newStage === 'generating_profiles' || newStage === '生成AgentCharacter profile') {
     phase.value = 1
-  } else if (newStage === '生成模Draft配置' || newStage === 'generating_config') {
+  } else if (newStage === 'generating_config' || newStage === '生成模Draft配置') {
     phase.value = 2
-    // 进入配置生成阶Segment, 开Start rounds询配置
     if (!configTimer) {
       addLog(t('log.startGeneratingConfig'))
       startConfigPolling()
     }
-  } else if (newStage === '准备模Draft脚本' || newStage === 'copying_scripts') {
-    phase.value = 2 // 仍属于配置阶Segment
+  } else if (newStage === 'copying_scripts' || newStage === '准备模Draft脚本') {
+    phase.value = 2
   }
 })
 
@@ -910,7 +909,7 @@ const pollPrepareStatus = async () => {
       }
     }
   } catch (err) {
-    console.warn(' rounds询状态失败:', err)
+    console.warn('Failed to poll status:', err)
   }
 }
 
@@ -954,7 +953,7 @@ const fetchProfilesRealtime = async () => {
       }
     }
   } catch (err) {
-    console.warn('获取 Profiles 失败:', err)
+    console.warn('Failed to get profiles:', err)
   }
 }
 
@@ -1027,7 +1026,7 @@ const fetchConfigRealtime = async () => {
       }
     }
   } catch (err) {
-    console.warn('获取 Config 失败:', err)
+    console.warn('Failed to get config:', err)
   }
 }
 

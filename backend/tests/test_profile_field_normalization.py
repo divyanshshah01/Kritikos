@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 import json
 
 from app.services.oasis_profile_generator import (
@@ -11,7 +11,7 @@ from app.services.oasis_profile_generator import (
 
 def test_text_coercion_handles_none_nested_objects_and_lists():
     assert _coerce_to_str(None) == ""
-    assert _coerce_to_str({"text": {"value": "in 文"}}) == "in 文"
+    assert _coerce_to_str({"text": {"value": "in æ–‡"}}) == "in æ–‡"
     assert _coerce_to_str([None, {"description": "alpha"}, ["beta"]]) == "alpha, beta"
     assert _coerce_to_str({"unexpected": None}) == '{"unexpected": null}'
 
@@ -29,21 +29,21 @@ def test_profile_construction_is_the_single_normalization_boundary():
         user_name="agent",
         name="Agent Name",
         bio=None,
-        persona={"text": {"value": "详细Character profile"}},
+        persona={"text": {"value": "è¯¦ç»†Character profile"}},
         gender=["female"],
         mbti={"value": "INTJ"},
-        country={"name": "in 国"},
-        profession={"description": "研究员"},
-        interested_topics=["AI", ["Politics策", None], {"name": "社会"}],
+        country={"name": "in å›½"},
+        profession={"description": "ç ”ç©¶å‘˜"},
+        interested_topics=["AI", ["Politicsç­–", None], {"name": "ç¤¾ä¼š"}],
     )
 
     assert profile.bio == "Agent Name"
-    assert profile.persona == "详细Character profile"
+    assert profile.persona == "è¯¦ç»†Character profile"
     assert profile.gender == "female"
     assert profile.mbti == "INTJ"
-    assert profile.country == "in 国"
-    assert profile.profession == "研究员"
-    assert profile.interested_topics == ["AI", "Politics策", "社会"]
+    assert profile.country == "in å›½"
+    assert profile.profession == "ç ”ç©¶å‘˜"
+    assert profile.interested_topics == ["AI", "Politicsç­–", "ç¤¾ä¼š"]
     assert "None" not in json.dumps(profile.to_dict(), ensure_ascii=False)
 
 
@@ -52,10 +52,10 @@ def test_normalized_profile_serializes_to_twitter_and_reddit(tmp_path):
         user_id=1,
         user_name="agent",
         name="Agent Name",
-        bio={"summary": "公开简Introduce"},
-        persona=["详细", "Character profile"],
+        bio={"summary": "å…¬å¼€ç®€Introduce"},
+        persona=["è¯¦ç»†", "Character profile"],
         mbti={"text": "ENFP"},
-        interested_topics=["AI", ["Politics策"]],
+        interested_topics=["AI", ["Politicsç­–"]],
     )
     generator = object.__new__(OasisProfileGenerator)
     twitter_path = tmp_path / "twitter_profiles.csv"
@@ -68,9 +68,9 @@ def test_normalized_profile_serializes_to_twitter_and_reddit(tmp_path):
         twitter = next(csv.DictReader(handle))
     reddit = json.loads(reddit_path.read_text(encoding="utf-8"))[0]
 
-    assert twitter["description"] == "公开简Introduce"
-    assert twitter["user_char"] == "公开简Introduce 详细, Character profile"
-    assert reddit["bio"] == "公开简Introduce"
-    assert reddit["persona"] == "详细, Character profile"
+    assert twitter["description"] == "å…¬å¼€ç®€Introduce"
+    assert twitter["user_char"] == "å…¬å¼€ç®€Introduce è¯¦ç»†, Character profile"
+    assert reddit["bio"] == "å…¬å¼€ç®€Introduce"
+    assert reddit["persona"] == "è¯¦ç»†, Character profile"
     assert reddit["mbti"] == "ENFP"
-    assert reddit["interested_topics"] == ["AI", "Politics策"]
+    assert reddit["interested_topics"] == ["AI", "Politicsç­–"]

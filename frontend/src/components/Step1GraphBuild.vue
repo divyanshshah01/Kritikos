@@ -213,7 +213,7 @@ const creatingSimulation = ref(false)
 // 进入环境Setup建 - Create simulation and navigate
 const handleEnterEnvSetup = async () => {
   if (!props.projectData?.project_id || !props.projectData?.graph_id) {
-    console.error('缺少项目 or 图谱信息')
+    console.error('Missing project or graph information')
     return
   }
   
@@ -228,17 +228,16 @@ const handleEnterEnvSetup = async () => {
     })
     
     if (res.success && res.data?.simulation_id) {
-      // 跳Convert到 simulation 页面
       router.push({
         name: 'Simulation',
         params: { simulationId: res.data.simulation_id }
       })
     } else {
-      console.error('Create模Draft失败:', res.error)
+      console.error('Create simulation failed:', res.error)
       alert(t('step1.createSimulationFailed', { error: res.error || t('common.unknownError') }))
     }
   } catch (err) {
-    console.error('Create模Draft异常:', err)
+    console.error('Create simulation exception:', err)
     alert(t('step1.createSimulationException', { error: err.message }))
   } finally {
     creatingSimulation.value = false

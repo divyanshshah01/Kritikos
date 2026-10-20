@@ -30,7 +30,7 @@ from .zep_tools import (
     InterviewResult
 )
 
-logger = get_logger('mirofish.report_agent')
+logger = get_logger('kritikos.report_agent')
 
 
 class ReportLogger:
@@ -351,26 +351,26 @@ class ReportConsoleLogger:
         )
         self._file_handler.setFormatter(formatter)
         
-        # 添加到 report_agent 相关的 logger
+        # Add to report_agent related loggers
         loggers_to_attach = [
-            'mirofish.report_agent',
-            'mirofish.zep_tools',
+            'kritikos.report_agent',
+            'kritikos.zep_tools',
         ]
         
         for logger_name in loggers_to_attach:
             target_logger = logging.getLogger(logger_name)
-            # 避免重复添加
+            # Avoid duplicate handlers
             if self._file_handler not in target_logger.handlers:
                 target_logger.addHandler(self._file_handler)
     
     def close(self):
-        """关闭文件Location理Device并从 logger in Transfer除"""
+        """Close file handler and remove from loggers"""
         import logging
         
         if self._file_handler:
             loggers_to_detach = [
-                'mirofish.report_agent',
-                'mirofish.zep_tools',
+                'kritikos.report_agent',
+                'kritikos.zep_tools',
             ]
             
             for logger_name in loggers_to_detach:
@@ -474,78 +474,27 @@ class Report:
 # ── 工具描Description ──
 
 TOOL_DESC_INSIGHT_FORGE = """\
- [深度洞Observe检索 - Powerful retrieval tool] 
-这is 我们StrongLarge的检索函数, 专为深度 min析设计. 它会: 
-1. 自动将你的问题 min解为多Child问题
-2. 从多维度检索模Draft图谱in 的信息
-3. 整合语义搜索, entities min析, relations链追踪的结果
-4. Return最全面, 最深度的检索内容
-
- [使Use场景] 
-- 需要深入 min析某话题
-- 需要了解Event的多方面
-- 需要获取支撑报告章节的丰富素材
-
- [Return内容] 
-- 相关事实原文 (可直Connect引Use) 
-- Core Entity洞Observe
-- relations链 min析"""
+[Deep Insight Search - Powerful retrieval tool]
+Designed for deep analytical synthesis across the simulation knowledge graph:
+1. Decomposes complex questions into targeted sub-questions
+2. Multi-dimensional retrieval of stakeholder behaviors, facts, and sentiment
+3. Synthesizes semantic search, entity analytics, and relationship trajectories
+4. Returns comprehensive insights with direct evidence and quotes."""
 
 TOOL_DESC_PANORAMA_SEARCH = """\
- [广度搜索 - 获取全貌视图] 
-这工具Use于获取模Draft结果的完整全貌, 特别适合了解EventPerformChange过程. 它会: 
-1. Retrieve all related nodes and relationships
-2. 区 minCurrently valid facts and 历史/过期的事实
-3. 帮助你了解舆情is 如何PerformChange的
-
- [使Use场景] 
-- 需要了解Event的完整发Display脉络
-- 需要对比不Same阶Segment的舆情ChangeTransform
-- 需要获取全面的entities and relations信息
-
- [Return内容] 
-- 当before has效事实 (模Draft最新结果) 
-- 历史/过期事实 (PerformChange记录) 
-- 所hasInvolved and 的entities"""
+[Broad Panorama Search - Full overview]
+Provides a global macro-level view of the entire simulation trajectory:
+1. Retrieves all relevant nodes and relationships across the timeline
+2. Distinguishes active trends from earlier/initial baseline facts
+3. Traces stakeholder reaction patterns and shifts over time."""
 
 TOOL_DESC_QUICK_SEARCH = """\
- [简单搜索 - 快速检索] 
-Light量级的快速检索工具, 适合简单, 直Connect的信息查询. 
-
- [使Use场景] 
-- 需要快速Search某具体信息
-- 需要验证某事实
-- 简单的信息检索
-
- [Return内容] 
--  and 查询最相关的事实列表"""
+[Quick Search - Fast factual lookup]
+Lightweight retrieval tool for targeted queries, specific fact validation, and direct citations."""
 
 TOOL_DESC_INTERVIEW_AGENTS = """\
- [深度采访 - True实Agent采访 (双平台) ] 
-InvokeUseOASIS模Draft环境的采访API, 对正在运行的模DraftAgent进行True实采访! 
-This is not an LLM simulation; it calls the real interview API to obtain the simulated Agent's original response. 
-Default认在Twitter and Reddit两平台Same hour采访, 获取更全面的观点. 
-
-功能流程: 
-1. 自动读取Character profile文件, 了解所has模DraftAgent
-2. 智能选择 and Interview topic最相关的Agent (如Learning生, 媒体, 官方等) 
-3. 自动生成采访问题
-4. InvokeUse /api/simulation/interview/batch Connect口在双平台进行True实采访
-5. 整合所has采访结果, 提供多视角 min析
-
- [使Use场景] 
-- 需要从不Same角Color视角了解Event看Method (Learning生怎么看? 媒体怎么看? 官方怎么说? ) 
-- 需要收集多方意见 and 立场
-- 需要获取模DraftAgent的True实回答 (来自OASIS模Draft环境) 
-- 想让报告更生动, Include"采访实录"
-
- [Return内容] 
-- 被采访Agent的身份信息
-- Interview responses of each Agent on Twitter and Reddit platforms
-- 关键引言 (可直Connect引Use) 
-- 采访摘要 and 观点对比
-
- [重要] 需要OASIS模Draft环境正在运行才能使Use此功能! """
+[Deep Stakeholder Interview - Live Agent Interview (Multi-platform)]
+Interviews live simulated agents in the running environment (Twitter & Reddit) to get authentic first-person reactions, stakeholder opinions, and critical feedback on the proposed idea or scenario."""
 
 # ── Large纲规划 prompt ──
 
@@ -621,189 +570,89 @@ Design the optimal report chapter structure based on prediction results.
 # ── 章节生成 prompt ──
 
 SECTION_SYSTEM_PROMPT_TEMPLATE = """\
-你is 一「not 来预测报告」the writing expert, currently drafting a chapter of the report. 
+You are an expert market validation and simulation research analyst at Kritikos, currently drafting a chapter of the validation report.
 
-报告标题: {report_title}
-报告摘要: {report_summary}
-预测场景 (模Draft需Request) : {simulation_requirement}
+Report Title: {report_title}
+Report Summary: {report_summary}
+Simulation Scenario / Objective: {simulation_requirement}
 
-当before 要撰写的章节: {section_title}
-
-═══════════════════════════════════════════════════════════════
- [核心理念] 
-═══════════════════════════════════════════════════════════════
-
-模Draft世界is 对not 来的预Perform. 我们向模Draft世界注入了特定 items件 (模Draft需Request) , 
-模Draftin Agent的行为 and 互动, 就is 对not 来Person群行为的预测. 
-
-你的任务is : 
-- Reveal what will happen in the future under given conditions
-- 预测各ClassPerson群 (Agent) is 如何反应 and 行动的
-- 发现值得关注的not 来趋势, 风险 and 机会
-
-❌ 不要写成对现实世界现状的 min析
-✅ 要聚焦于"not 来会怎样" -- 模Draft结果就is 预测的not 来
+Current Chapter to Write: {section_title}
 
 ═══════════════════════════════════════════════════════════════
- [最重要的规则 - 必须遵守] 
+ [Core Concept]
 ═══════════════════════════════════════════════════════════════
 
-1.  [Tool must be invoked to observe the simulated world] 
-   - 你正在以「on 帝视角」观Observenot 来的预Perform
-   - 所has内容必须来自模Draft世界in 发生的Event and Agent言行
-   - 禁止使Use你自己的Knowledge识来编写报告内容
-   - 每章节至少InvokeUse3 times工具 (最多5 times) 来观Observe模Draft的世界, 它代表了not 来
-
-2.  [必须引UseAgent的原Start言行] 
-   - Agent的发言 and 行为is 对not 来Person群行为的预测
-   - 在报告in 使Use引UseFormatDisplayExample这些预测, 例如: 
-     > "某ClassPerson群会表Example: 原文内容..."
-   - 这些引Useis 模Draft预测的核心证据
-
-3.  [语言一致性 - 引Use内容必须翻译为报告语言] 
-   - 工具Return的内容可能Include and 报告语言不Same的表Description
-   - 报告必须全部使Use and Use户Indicates定语言一致的语言撰写
-   - 当你引Use工具Return的其Other语言内容 hour, 必须将其翻译为报告语言after 再写入
-   - 翻译 hour保持原意不Change, 确保表Description自然通顺
-   - 这一规则Same hour适Use于正文 and 引UseBlock (> Format) in 的内容
-
-4.  [忠实呈现预测结果] 
-   - 报告内容必须反映模Draft世界in 的代表not 来的模Draft结果
-   - 不要添加模Draftin 不存在的信息
-   - 如果某方面信息不Sufficient, 如实说明
-
-5.  [Prohibit Fabricating Data] 
-   - ❌ 禁止捏造Use户名, 引Use, 统计数字 or 互动数据
-   - ❌ 禁止在回复in Include <tool_result> Block — only the system provides tool results
-   - ✅ 只能引UseTrue实Output现在工具结果in 的entities, 引Use and 数据
-   - If the tool result lacks relevant content, state it truthfully instead of fabricating
+The simulation environment predicts real-world stakeholder behavior under the specified conditions.
+Your mission is to:
+- Reveal market dynamics and behavioral outcomes under the tested conditions
+- Analyze how distinct cohorts (early adopters, enterprises, investors, regulators, skeptics) reacted
+- Uncover emerging trends, critical failure modes, adoption barriers, and growth catalysts
+- Ground all findings strictly in simulated evidence and stakeholder citations
 
 ═══════════════════════════════════════════════════════════════
- [⚠️ Format规范 - 极其重要! ] 
+ [Mandatory Rules - Strictly Enforced]
 ═══════════════════════════════════════════════════════════════
 
- [一章节 = 最小内容单位] 
-- 每章节is 报告的最小Chunking单位
-- ❌ 禁止在章节内使Use任何 Markdown 标题 (#, ##, ###, #### 等) 
-- ❌ 禁止在内容开头添加章节主标题
-- ✅ 章节标题由System统自动添加, 你只需撰写纯正文内容
-- ✅ 使Use**粗体**, Use paragraph breaks, blockquotes, and lists to organize content, but avoid headings
+1. [Use Tools to Query the Simulated World]
+   - You observe the simulation from an analytical, objective perspective.
+   - All assertions, percentages, and events must come directly from retrieved simulation data.
+   - You must call 3 to 5 tools per chapter to gather solid evidence before outputting the final text.
 
- [正确Example例] 
-```
-本章节 min析了Event的舆论传播态势. 通过对模Draft数据的深入 min析, 我们发现...
+2. [Direct Citations of Agent Quotes and Reactions]
+   - Agent comments and behaviors are primary evidence of predicted stakeholder reception.
+   - Use blockquotes (> quote) to feature authentic quotes and reactions:
+     > "Agent Name (@handle): Key quote or sentiment expression..."
 
-**Initial launch explosion phase**
+3. [Language Consistency]
+   - The report must be written in fluent, professional English matching the user's preferred language.
+   - Any translated material should maintain original meaning and nuanced context.
 
-Weibo serves as the front line of public opinion, handling the core function of initial information release: 
-
-> "微博贡Contribute了68%的首发声量..."
-
-**情绪ReleaseLarge阶Segment**
-
-抖音平台进一步ReleaseLarge了Event影响力: 
-
-- 视觉冲击力Strong
-- 情绪共鸣度高
-```
-
- [错误Example例] 
-```
-## Execution summary          ← 错误! 不要添加任何标题
-### 一, 首发阶Segment     ← 错误! 不要Use### min小节
-#### 1.1 详细 min析   ← 错误! 不要Use####细 min
-
-本章节 min析了...
-```
+4. [Prohibit Fabricating Data]
+   - ❌ Never invent fictitious metrics, user handles, or simulated statistics.
+   - ❌ Never output raw <tool_result> blocks yourself — only the system provides tool results.
+   - ✅ Only cite entities, sentiments, and evidence verified via tool observations.
 
 ═══════════════════════════════════════════════════════════════
- [可Use检索工具]  (每章节InvokeUse3-5 times) 
+ [Formatting Guidelines - Essential]
 ═══════════════════════════════════════════════════════════════
 
-{tools_description}
-
- [工具使Use建议 - 请混合使Use不Same工具, 不要只Use一种] 
-- insight_forge: 深度洞Observe min析, 自动 min解问题并多维度检索事实 and relations
-- panorama_search: 广角全景搜索, 了解Event全貌,  hour间线 and PerformChange过程
-- quick_search: 快速验证某具体信息点
-- interview_agents: 采访模DraftAgent, 获取不Same角Color的第一Person称观点 and True实反应
+- ❌ Do NOT use Markdown headings (#, ##, ###, ####) inside the chapter body. The system renders chapter titles automatically.
+- ❌ Do NOT repeat the chapter title at the beginning.
+- ✅ Use **bold text**, bullet points, numbered lists, and blockquotes (> citation) to structure the chapter body cleanly.
 
 ═══════════════════════════════════════════════════════════════
- [工作流程] 
+ [Workflow]
 ═══════════════════════════════════════════════════════════════
 
-每 times回复你只能做以under 两件事之一 (不可Same hour做) : 
+In each step, perform ONE action:
 
-选项A - InvokeUse工具: 
-输Output你的Thought考, 然after Use以under FormatInvokeUse一工具: 
+Option A - Invoke a Tool:
+Output your reasoning in Thought:, then invoke a tool using:
 <tool_call>
-{{"name": "工具名称", "parameters": {{"参数名": "Parameter value"}}}}
+{{"name": "tool_name", "parameters": {{"param_name": "param_value"}}}}
 </tool_call>
-System统会执行工具并把结果Return给你. 你不需要也不能自己编写工具Return结果. 
 
-选项B - 输Output最终内容: 
-当你already 通过工具获取了Sufficient够信息, 以 "Final Answer:" 开头输Output章节内容. 
-
-⚠️ 严格禁止: 
-- 禁止在一 times回复in Same hourInclude工具InvokeUse and  Final Answer
-- 禁止自己编造工具Return结果 (Observation) , 所has工具结果由System统注入
-- 每 times回复最多InvokeUse一工具
-
-═══════════════════════════════════════════════════════════════
- [章节内容Requirement] 
-═══════════════════════════════════════════════════════════════
-
-1. 内容必须基于工具检索到的模Draft数据
-2. Large量引Use原文来DisplayExample模Draft效果
-3. 使UseMarkdownFormat (但禁止使Use标题) : 
-   - 使Use **粗体文字** Mark key points (instead of subheadings) 
-   - 使Use列表 (- or 1.2.3.) 组织要点
-   - 使Use空行 min隔不SameSegment落
-   - ❌ 禁止使Use #, ##, ###, #### 等任何标题语Method
-4.  [引UseFormat规范 - 必须单独成Segment] 
-   Citations must be in a separate paragraph with a blank line before and after, and cannot be mixed within paragraphs: 
-
-   ✅ 正确Format: 
-   ```
-   校方的回应被认为缺乏实质内容. 
-
-   > "校方的应对模式在Instant息万Change的社交媒体环境in 显得僵Transform and 迟缓. "
-
-   这一评Price反映了公众的Generaltimes不满. 
-   ```
-
-   ❌ 错误Format: 
-   ```
-   校方的回应被认为缺乏实质内容. > "校方的应对模式..." 这一评Price反映了...
-   ```
-5. 保持 and 其Other章节的逻辑Link贯性
-6.  [避免重复] 仔细阅读under 方Completed的章节内容, 不要重复描Description相Same的信息
-7.  [再 timesStrongInvoke] 不要添加任何标题! Use**粗体**Replace section title"""
+Option B - Output Final Content:
+When sufficient evidence has been gathered, start your final text with "Final Answer:" followed by the full chapter content (no headings)."""
 
 SECTION_USER_PROMPT_TEMPLATE = """\
-Completed chapter content (please read carefully to avoid duplication) : 
+Completed chapter content (read carefully to ensure seamless continuity and avoid duplication):
 {previous_content}
 
 ═══════════════════════════════════════════════════════════════
- [当before 任务] Write chapter: {section_title}
+ [Current Task] Write chapter: {section_title}
 ═══════════════════════════════════════════════════════════════
 
- [重要提醒] 
-1. 仔细阅读on 方Completed的章节, 避免重复相Same的内容! 
-2. 开Startbefore 必须FirstInvokeUse工具获取模Draft数据
-3. 请混合使Use不Same工具, 不要只Use一种
-4. 报告内容必须来自检索结果, 不要使Use自己的Knowledge识
+Important Guidelines:
+1. Review previously written chapters to avoid redundancy.
+2. Call tools first to retrieve authentic simulation data.
+3. Synthesize multiple perspectives across different cohorts.
+4. Output cleanly formatted prose without Markdown headings (#, ##, etc.).
 
- [⚠️ Format警告 - 必须遵守] 
-- ❌ 不要写任何标题 (#, ##, ###, ####都不行) 
-- ❌ 不要写"{section_title}"作为开头
-- ✅ 章节标题由System统自动添加
-- ✅ 直Connect写正文, Use**粗体**Replace section title
-
-Please start: 
-1. 首FirstThought考 (Thought) 这章节需要什么信息
-2. 然after InvokeUse工具 (Action) 获取模Draft数据
-3. 收集Sufficient够信息after 输Output Final Answer (纯正文, none任何标题) """
+Please begin:
+1. Thought: Determine what evidence is required.
+2. Action: Invoke a tool to query the simulation data.
+3. Once sufficient data is gathered, output "Final Answer:" with the complete chapter content."""
 
 # ── ReACT 循环内Delete息模板 ──
 
@@ -1326,7 +1175,7 @@ class ReportAgent:
                 previous_parts.append(truncated)
             previous_content = "\n\n---\n\n".join(previous_parts)
         else:
-            previous_content = " (这is 第一章节) "
+            previous_content = " (This is the first section) "
         
         user_prompt = SECTION_USER_PROMPT_TEMPLATE.format(
             previous_content=previous_content,
@@ -1373,20 +1222,20 @@ class ReportAgent:
                 logger.warning(t('report.sectionIterNone', title=section.title, iteration=iteration + 1))
                 # 如果还hasIteration代 times数, 添加Delete息并重Test
                 if iteration < max_iterations - 1:
-                    messages.append({"role": "assistant", "content": " (响应为空) "})
-                    messages.append({"role": "user", "content": "请继续生成内容. "})
+                    messages.append({"role": "assistant", "content": " (Empty response) "})
+                    messages.append({"role": "user", "content": "Please continue generating content."})
                     continue
                 # 最after 一 timesIteration代也Return None, 跳Output循环进入Strong制收尾
                 break
 
-            logger.debug(f"LLM响应: {response[:200]}...")
+            logger.debug(f"LLM response: {response[:200]}...")
 
-            # 解析一 times, 复Use结果
+            # Parse tool calls
             tool_calls = self._parse_tool_calls(response)
             has_tool_calls = bool(tool_calls)
             has_final_answer = "Final Answer:" in response
 
-            # ── 冲突Location理: LLM Same hour输Output了工具InvokeUse and  Final Answer ──
+            # Conflict handling: LLM output both tool calls and Final Answer simultaneously
             if has_tool_calls and has_final_answer:
                 conflict_retries += 1
                 logger.warning(
@@ -1394,17 +1243,16 @@ class ReportAgent:
                 )
 
                 if conflict_retries <= 2:
-                    # before 两 times: 丢弃本 times响应, Requirement LLM 重新回复
                     cleaned_response = ReportAgent._strip_fake_tool_results(response)
                     messages.append({"role": "assistant", "content": cleaned_response})
                     messages.append({
                         "role": "user",
                         "content": (
-                            " [Format Error] 你在一 times回复in Same hourInclude了工具InvokeUse and  Final Answer, 这is 不允许的. \n"
-                            "每 times回复只能做以under 两件事之一: \n"
-                            "- Invoke a tool (output a <tool_call> Block, 不要写 Final Answer) \n"
-                            "- 输Output最终内容 (以 'Final Answer:' 开头, 不要Include <tool_call>) \n"
-                            "请重新回复, 只做其in 一件事. "
+                            "[Format Error] You included both a tool call and Final Answer in a single response, which is not allowed.\n"
+                            "In each response, perform only ONE of the following:\n"
+                            "- Invoke a tool (output a <tool_call> block, do not write Final Answer)\n"
+                            "- Output final content (starting with 'Final Answer:', do not include <tool_call>)\n"
+                            "Please respond again performing only one of these actions."
                         ),
                     })
                     continue
@@ -1881,13 +1729,13 @@ class ReportAgent:
                 # 限制报告长度, 避免on under 文过长
                 report_content = report.markdown_content[:15000]
                 if len(report.markdown_content) > 15000:
-                    report_content += "\n\n... [报告内容already 截断] ..."
+                    report_content += "\n\n... [Report content truncated] ..."
         except Exception as e:
             logger.warning(t('report.fetchReportFailed', error=e))
         
         system_prompt = CHAT_SYSTEM_PROMPT_TEMPLATE.format(
             simulation_requirement=self.simulation_requirement,
-            report_content=report_content if report_content else " (Temporarilynone报告) ",
+            report_content=report_content if report_content else " (No report available yet) ",
             tools_description=self._get_tools_description(),
         )
         system_prompt = f"{system_prompt}\n\n{get_language_instruction()}"

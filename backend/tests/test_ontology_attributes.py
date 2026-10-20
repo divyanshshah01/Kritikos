@@ -1,4 +1,4 @@
-from app.services.ontology_generator import OntologyGenerator
+﻿from app.services.ontology_generator import OntologyGenerator
 from app.services.graph_builder import GraphBuilderService
 from app.utils.ontology import (
     MAX_ONTOLOGY_ATTRIBUTES,

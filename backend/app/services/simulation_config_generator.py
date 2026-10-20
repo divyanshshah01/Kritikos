@@ -24,29 +24,30 @@ from ..utils.locale import get_language_instruction, t
 from ..utils.openai_chat_compat import create_chat_completion, extract_chat_completion_text
 from .zep_entity_reader import EntityNode, ZepEntityReader
 
-logger = get_logger('mirofish.simulation_config')
+logger = get_logger('kritikos.simulation_config')
 
-# in 国作息 hour间配置 (North京 hour间) 
-CHINA_TIMEZONE_CONFIG = {
-    # 深夜 hourSegment (几乎nonePerson活动) 
+# Diurnal timezone schedule configuration
+DEFAULT_TIMEZONE_CONFIG = {
+    # Late night hours (minimal activity)
     "dead_hours": [0, 1, 2, 3, 4, 5],
-    # 早间 hourSegment (逐渐醒来) 
+    # Morning hours (waking up)
     "morning_hours": [6, 7, 8],
-    # 工作 hourSegment
+    # Working hours
     "work_hours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-    # Evening peak (最活跃) 
+    # Evening peak (highest engagement)
     "peak_hours": [19, 20, 21, 22],
-    # 夜间 hourSegment (活跃度under 降) 
+    # Night hours (declining activity)
     "night_hours": [23],
-    # 活跃度System数
+    # Activity multipliers
     "activity_multipliers": {
-        "dead": 0.05,      # 凌晨几乎nonePerson
-        "morning": 0.4,    # 早间逐渐活跃
-        "work": 0.7,       # 工作 hourSegmentin 等
-        "peak": 1.5,       # Evening peak
-        "night": 0.5       # 深夜under 降
+        "dead": 0.05,
+        "morning": 0.4,
+        "work": 0.7,
+        "peak": 1.5,
+        "night": 0.5
     }
 }
+CHINA_TIMEZONE_CONFIG = DEFAULT_TIMEZONE_CONFIG
 
 
 @dataclass
@@ -234,7 +235,7 @@ class SimulationConfigGenerator:
         self.model_name = model_name or Config.LLM_MODEL_NAME
         
         if not self.api_key:
-            raise ValueError("LLM_API_KEY not 配置")
+            raise ValueError("LLM_API_KEY is not configured")
         
         self.client = OpenAI(
             api_key=self.api_key,
@@ -542,28 +543,23 @@ class SimulationConfigGenerator:
         # 计算最Large允许值 (80%的agent数) 
         max_agents_allowed = max(1, int(num_entities * 0.9))
         
-        prompt = f"""基于以under 模Draft需Request, 生成 hour间模Draft配置. 
+        prompt = f"""Based on the following simulation requirement, generate the time configuration for the digital simulation.
 
 {context_truncated}
 
-## 任务
-请Generation Time ConfigurationJSON. 
+## Task
+Generate a JSON object with simulation time parameters.
 
-### 基本原则 (仅供参考, 需根据具体Event and 参 and 群体灵活Invoke整) : 
-- 请根据模Draft场景Push断目标Use户群体所在 hour区 and 作息习惯, 以under 为东八区(UTC+8)的参考Example例
-- 凌晨0-5点几乎nonePerson活动 (活跃度System数0.05) 
-- 早on 6-8点逐渐活跃 (活跃度System数0.4) 
-- 工作 hour间9-18点in 等活跃 (活跃度System数0.7) 
-- Evening19-22点is 高Peak期 (活跃度System数1.5) 
-- 23Post-point activity decline (activity coefficient0.5) 
-- 一般规律: 凌晨低活跃, 早间渐增, 工作 hourSegmentin 等, Evening peak
-- **重要**: 以under Example例值仅供参考, 你需要根据Event性质, 参 and 群体特点来Invoke整具体 hourSegment
-  - 例如: Learning生群体高Peak可能is 21-23Points; media active all day; official institutions only during working hours
-  - 例如: 突发Hot点可能导致深夜也has讨论, off_peak_hours 可适当缩短
+### Basic Principles:
+- Infer the target audience's routine, work hours, and active cycles based on the simulation scenario.
+- Late night (0-5) has very low activity (coefficient 0.05).
+- Morning (6-8) gradually increases (coefficient 0.4).
+- Working hours (9-18) moderate activity (coefficient 0.7).
+- Evening (19-22) is peak activity (coefficient 1.5).
+- Late evening (23+) activity declines (coefficient 0.5).
+- Tailor peak and active hours to the specific stakeholder types (e.g., students vs enterprise executives vs media).
 
-### ReturnJSONFormat (不要markdown) 
-
-Example例: 
+### Return Format (valid JSON only, no markdown):
 {{
     "total_simulation_hours": 72,
     "minutes_per_round": 60,
@@ -573,21 +569,22 @@ Example例:
     "off_peak_hours": [0, 1, 2, 3, 4, 5],
     "morning_hours": [6, 7, 8],
     "work_hours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-    "reasoning": "Time configuration description for this event"
+    "reasoning": "Rationale for time configuration in this market context"
 }}
 
-Field description: 
-- total_simulation_hours (int): 模Draft总 hour长, 24-168Hour, 突发Event短, 持续话题长
-- minutes_per_round (int): 每 rounds hour长, 30-120minutes, 建议60minutes
-- agents_per_hour_min (int): 每Hour最少激活Agent数 (取值范围: 1-{max_agents_allowed}) 
-- agents_per_hour_max (int): Maximum number of agents activated per hour (value range: 1-{max_agents_allowed}) 
-- peak_hours (int数组): 高Peak hourSegment, 根据Event参 and 群体Invoke整
-- off_peak_hours (int数组): 低谷 hourSegment, 通常深夜凌晨
-- morning_hours (int数组): 早间 hourSegment
-- work_hours (int数组): 工作 hourSegment
-- reasoning (string): 简要说明为什么这样配置"""
+Field description:
+- total_simulation_hours (int): Total simulation duration (24-168 hours).
+- minutes_per_round (int): Duration per round (30-120 minutes, recommended 60).
+- agents_per_hour_min (int): Minimum active agents per hour (1-{max_agents_allowed}).
+- agents_per_hour_max (int): Maximum active agents per hour (1-{max_agents_allowed}).
+- peak_hours (int array): Peak engagement hours.
+- off_peak_hours (int array): Low activity hours.
+- morning_hours (int array): Morning hours.
+- work_hours (int array): Standard work hours.
+- reasoning (string): Brief rationale for configuration.
+"""
 
-        system_prompt = "你is 社交媒体模Draft专Home. Return纯JSONFormat,  hour间配置需Symbol合模Draft场景in 目标Use户群体的作息习惯. "
+        system_prompt = "You are a social media simulation specialist. Return pure JSON format fitting the daily habits of target stakeholder groups."
         system_prompt = f"{system_prompt}\n\n{get_language_instruction()}"
 
         try:
@@ -675,36 +672,34 @@ Field description:
         # 使Use配置的on under 文截断长度
         context_truncated = context[:self.EVENT_CONFIG_CONTEXT_LENGTH]
         
-        prompt = f"""Generate event configuration based on the following simulation requirements. 
+        prompt = f"""Generate event configuration based on the following simulation requirements.
 
-模Draft需Request: {simulation_requirement}
+Simulation Requirement: {simulation_requirement}
 
 {context_truncated}
 
-## 可UseentitiesClass型 and Example例
+## Available Entity Types & Examples:
 {type_info}
 
-## 任务
-请生成Event配置JSON: 
-- 提取Hot点话题关键词
-- Describe the direction of public opinion development
-- 设计初Start帖Child内容, **每帖Child必须Indicates定 poster_type (发布者Class型) **
+## Task:
+Generate an event configuration JSON:
+- Extract trending hot topic keywords
+- Describe narrative direction of market / public opinion development
+- Design initial seed posts, where each post must specify a valid poster_type matching available entity types.
 
-**重要**: poster_type 必须从on 面的"可UseentitiesClass型"in 选择, 这样初Start帖Child才能 min配给合适的 Agent 发布. 
-例如: 官方声明应由 Official/University Class型发布, 新闻由 MediaOutlet 发布, Learning生观点由 Student 发布. 
+IMPORTANT: poster_type MUST be selected from the 'Available Entity Types' listed above so seed posts can be assigned to appropriate agents.
 
-ReturnJSONFormat (不要markdown) : 
+Return JSON format (no markdown):
 {{
-    "hot_topics": ["关键词1", "关键词2", ...],
-    "narrative_direction": "<舆论发Display方向描Description>",
+    "hot_topics": ["keyword1", "keyword2"],
+    "narrative_direction": "<description of narrative trajectory>",
     "initial_posts": [
-        {{"content": "帖Child内容", "poster_type": "entitiesClass型 (必须从可UseClass型in 选择) "}},
-        ...
+        {{"content": "Seed post content", "poster_type": "<entity_type exactly matching available types>"}}
     ],
-    "reasoning": "<简要说明>"
+    "reasoning": "<brief reasoning>"
 }}"""
 
-        system_prompt = "你is 舆论 min析专Home. Return纯JSONFormat. 注意 poster_type Must exactly match available entity types. "
+        system_prompt = "You are a market opinion and discourse analysis expert. Return pure JSON format. The poster_type MUST exactly match available entity types."
         system_prompt = f"{system_prompt}\n\n{get_language_instruction()}\nIMPORTANT: The 'poster_type' field value MUST be in English PascalCase exactly matching the available entity types. Only 'content', 'narrative_direction', 'hot_topics' and 'reasoning' fields should use the specified language."
 
         try:
@@ -832,43 +827,41 @@ ReturnJSONFormat (不要markdown) :
                 "summary": e.summary[:summary_len] if e.summary else ""
             })
         
-        prompt = f"""基于以under 信息, 为每entities生成社交媒体活动配置. 
+        prompt = f"""Based on the following information, generate social media activity configurations for each entity.
 
-模Draft需Request: {simulation_requirement}
+Simulation Requirement: {simulation_requirement}
 
-## entities列表
+## Entity List
 ```json
 {json.dumps(entity_list, ensure_ascii=False, indent=2)}
 ```
 
-## 任务
-为每entities生成活动配置, 注意: 
-- ** hour间Symbol合目标Use户群体作息**: 以under 为参考 (东八区) , 请根据模Draft场景Invoke整
-- **官方机构** (University/GovernmentAgency) : Low activity(0.1-0.3), 工作 hour间(9-17)活动, 响应慢(60-240minutes), 影响力高(2.5-3.0)
-- **媒体** (MediaOutlet) : 活跃度in (0.4-0.6), All-day activity(8-23), 响应快(5-30minutes), 影响力高(2.0-2.5)
-- **Person** (Student/Person/Alumni) : 活跃度高(0.6-0.9), 主要Evening活动(18-23), 响应快(1-15minutes), 影响力低(0.8-1.2)
-- **公众Person物/专Home**: 活跃度in (0.4-0.6), 影响力in 高(1.5-2.0)
+## Task
+Generate activity configurations for each entity:
+- Institutional / Enterprise (University, GovernmentAgency, Company): Low activity (0.1-0.3), business hours (9-17), delayed response (60-240 min), high influence (2.5-3.0).
+- Media (MediaOutlet): Medium activity (0.4-0.6), broad day hours (8-23), fast response (5-30 min), high influence (2.0-2.5).
+- Individual Stakeholders / Users (Student, Person, Alumni): High activity (0.6-0.9), active afternoon and evening (12-23), rapid response (1-15 min), normal influence (0.8-1.2).
+- Thought Leaders / Experts / Analysts: Moderate activity (0.4-0.6), medium-high influence (1.5-2.0).
 
-ReturnJSONFormat (不要markdown) : 
+Return JSON format (no markdown):
 {{
     "agent_configs": [
         {{
-            "agent_id": <Must match the input>,
+            "agent_id": <Must match the input agent_id>,
             "activity_level": <0.0-1.0>,
-            "posts_per_hour": <发帖频率>,
-            "comments_per_hour": <评论频率>,
-            "active_hours": [<活跃Hour列表, 考虑in 国Person作息>],
-            "response_delay_min": <最小响应延迟minutes>,
-            "response_delay_max": <最Large响应延迟minutes>,
-            "sentiment_bias": <-1.0到1.0>,
+            "posts_per_hour": <float>,
+            "comments_per_hour": <float>,
+            "active_hours": [<list of active hours, e.g. 9, 10, 11, 14, 15, 19, 20>],
+            "response_delay_min": <int in minutes>,
+            "response_delay_max": <int in minutes>,
+            "sentiment_bias": <-1.0 to 1.0>,
             "stance": "<supportive/opposing/neutral/observer>",
-            "influence_weight": <影响力权重>
-        }},
-        ...
+            "influence_weight": <0.5 to 3.0>
+        }}
     ]
 }}"""
 
-        system_prompt = "你is 社交媒体行为 min析专Home. Return纯JSON, 配置需Symbol合模Draft场景in 目标Use户群体的作息习惯. "
+        system_prompt = "You are a social media behavior specialist. Return pure JSON format matching stakeholder characteristics."
         system_prompt = f"{system_prompt}\n\n{get_language_instruction()}\nIMPORTANT: The 'stance' field value MUST be one of the English strings: 'supportive', 'opposing', 'neutral', 'observer'. All JSON field names and numeric values must remain unchanged. Only natural language text fields should use the specified language."
 
         try:

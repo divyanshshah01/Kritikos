@@ -19,7 +19,7 @@ from .oasis_profile_generator import OasisProfileGenerator, OasisAgentProfile
 from .simulation_config_generator import SimulationConfigGenerator, SimulationParameters
 from ..utils.locale import t
 
-logger = get_logger('mirofish.simulation')
+logger = get_logger('kritikos.simulation')
 
 
 class SimulationStatus(str, Enum):
@@ -275,7 +275,7 @@ class SimulationManager:
         """
         state = self._load_simulation_state(simulation_id)
         if not state:
-            raise ValueError(f"模Draft不存在: {simulation_id}")
+            raise ValueError(f"Simulation does not exist: {simulation_id}")
         
         try:
             state.status = SimulationStatus.PREPARING
@@ -287,7 +287,7 @@ class SimulationManager:
             
             sim_dir = self._get_simulation_dir(simulation_id)
             
-            # ========== 阶Segment1: 读取并过滤entities ==========
+            # ========== Stage 1: Read and filter entities ==========
             if progress_callback:
                 progress_callback("reading", 0, t('progress.connectingZepGraph'))
             
@@ -315,7 +315,7 @@ class SimulationManager:
             
             if filtered.filtered_count == 0:
                 state.status = SimulationStatus.FAILED
-                state.error = "没has找到Meets criteria的entities, 请检查图谱is no正确构建"
+                state.error = "No matching entities found in the knowledge graph. Please verify that Step 1 completed successfully."
                 self._save_simulation_state(state)
                 raise ValueError(state.error)
             
@@ -502,13 +502,13 @@ class SimulationManager:
         """获取模Draft的Agent Profile"""
         state = self._load_simulation_state(simulation_id)
         if not state:
-            raise ValueError(f"模Draft不存在: {simulation_id}")
+            raise ValueError(f"Simulation does not exist: {simulation_id}")
 
         if platform is None:
             platform = state.get_default_platform()
 
         if platform not in {"twitter", "reddit"}:
-            raise ValueError(f"不支持的平台: {platform}")
+            raise ValueError(f"Unsupported platform: {platform}")
 
         sim_dir = self._get_simulation_dir(simulation_id)
         profile_path = os.path.join(
@@ -529,7 +529,7 @@ class SimulationManager:
             return json.load(f)
     
     def get_simulation_config(self, simulation_id: str) -> Optional[Dict[str, Any]]:
-        """获取模Draft配置"""
+        """Get simulation configuration"""
         sim_dir = self._get_simulation_dir(simulation_id)
         config_path = os.path.join(sim_dir, "simulation_config.json")
         
@@ -540,7 +540,7 @@ class SimulationManager:
             return json.load(f)
     
     def get_run_instructions(self, simulation_id: str) -> Dict[str, str]:
-        """获取运行说明"""
+        """Get run instructions"""
         sim_dir = self._get_simulation_dir(simulation_id)
         config_path = os.path.join(sim_dir, "simulation_config.json")
         scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../scripts'))
@@ -555,10 +555,10 @@ class SimulationManager:
                 "parallel": f"python {scripts_dir}/run_parallel_simulation.py --config {config_path}",
             },
             "instructions": (
-                f"1. 激活conda环境: conda activate MiroFish\n"
-                f"2. 运行模Draft (脚本位于 {scripts_dir}):\n"
-                f"   - 单独运行Twitter: python {scripts_dir}/run_twitter_simulation.py --config {config_path}\n"
-                f"   - 单独运行Reddit: python {scripts_dir}/run_reddit_simulation.py --config {config_path}\n"
+                f"1. Activate environment: conda activate Kritikos\n"
+                f"2. Run simulation (scripts located in {scripts_dir}):\n"
+                f"   - Run Twitter only: python {scripts_dir}/run_twitter_simulation.py --config {config_path}\n"
+                f"   - Run Reddit only: python {scripts_dir}/run_reddit_simulation.py --config {config_path}\n"
                 f"   - Run dual platforms in parallel: python {scripts_dir}/run_parallel_simulation.py --config {config_path}"
             )
         }

@@ -1,4 +1,4 @@
-{
+﻿{
   "ongoing_interval_days": 13,
   "reconstruction": {
     "daily": [
@@ -854,7 +854,7 @@
     "generated_at": "2026-07-21T07:30:41Z",
     "method": "current_stargazers_starred_at"
   },
-  "repository": "666ghj/MiroFish",
+  "repository": "divyanshshah01/Kritikos",
   "schema_version": 1,
   "snapshots": [
     {

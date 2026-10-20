@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Run a manual, real Zep Cloud validation against a retained test graph.
 
 This script is intentionally excluded from the automated test suite. It requires
@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Iterable
 
-# Capture the caller-supplied key before importing MiroFish modules. app.config
+# Capture the caller-supplied key before importing Kritikos modules. app.config
 # deliberately loads the repository .env with override=True, which must not
 # silently replace the account selected for this explicit validation process.
 _PROCESS_ZEP_API_KEY = os.environ.get("ZEP_API_KEY", "").strip()
@@ -49,62 +49,62 @@ class SourceEpisode:
 BASELINE_EPISODES = [
     SourceEpisode(
         "2026-01-05T09:00:00Z",
-        "澜舟科Skill (企业稳定标识 LZ-TECH) is 一Home风电智能运维公司. "
-        "公司总部位于星港市, 周岚自 2024  year起担任首席执行官 (CEO) . ",
+        "æ¾œèˆŸç§‘Skill (ä¼ä¸šç¨³å®šæ ‡è¯† LZ-TECH) is ä¸€Homeé£Žç”µæ™ºèƒ½è¿ç»´å…¬å¸. "
+        "å…¬å¸æ€»éƒ¨ä½äºŽæ˜Ÿæ¸¯å¸‚, å‘¨å²šè‡ª 2024  yearèµ·æ‹…ä»»é¦–å¸­æ‰§è¡Œå®˜ (CEO) . ",
         "baseline",
     ),
     SourceEpisode(
         "2026-01-12T10:00:00Z",
-        "澜舟科Skill研发了Output品智巡平台 (Output品稳定标识 ZHIXUN-01) . "
-        "智巡平台当before Location于Test点阶Segment, Use于识别风机叶片异常. ",
+        "æ¾œèˆŸç§‘Skillç ”å‘äº†Outputå“æ™ºå·¡å¹³å° (Outputå“ç¨³å®šæ ‡è¯† ZHIXUN-01) . "
+        "æ™ºå·¡å¹³å°å½“before LocationäºŽTestç‚¹é˜¶Segment, UseäºŽè¯†åˆ«é£Žæœºå¶ç‰‡å¼‚å¸¸. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-01-20T14:00:00Z",
-        "澜舟科Skill and 海岳能Source (企业稳定标识 HY-ENERGY) 签署 HY-2026-01 合作协议. "
-        "双方将在东湾风场联合部署智巡平台, 协议has效期至 2026  year 12  month 31  day. ",
+        "æ¾œèˆŸç§‘Skill and æµ·å²³èƒ½Source (ä¼ä¸šç¨³å®šæ ‡è¯† HY-ENERGY) ç­¾ç½² HY-2026-01 åˆä½œåè®®. "
+        "åŒæ–¹å°†åœ¨ä¸œæ¹¾é£Žåœºè”åˆéƒ¨ç½²æ™ºå·¡å¹³å°, åè®®hasæ•ˆæœŸè‡³ 2026  year 12  month 31  day. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-02-02T09:30:00Z",
-        "Chen Yu担任澜舟科Skill智巡平台的项目负责Person, 负责东湾风场部署. "
-        "公司Experience营仍由首席执行官周岚负责. ",
+        "Chen Yuæ‹…ä»»æ¾œèˆŸç§‘Skillæ™ºå·¡å¹³å°çš„é¡¹ç›®è´Ÿè´£Person, è´Ÿè´£ä¸œæ¹¾é£Žåœºéƒ¨ç½². "
+        "å…¬å¸Experienceè¥ä»ç”±é¦–å¸­æ‰§è¡Œå®˜å‘¨å²šè´Ÿè´£. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-02-20T18:00:00Z",
-        "东湾风场的智巡平台Test点发现了 12 Location叶片异常, "
+        "ä¸œæ¹¾é£Žåœºçš„æ™ºå·¡å¹³å°Testç‚¹å‘çŽ°äº† 12 Locationå¶ç‰‡å¼‚å¸¸, "
         "Reduced unplanned downtime for Haiyue Energy 18%. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-03-05T11:00:00Z",
-        "海岳能Source确认澜舟科Skillis 智巡平台的开发方, Chen Yuis 实施项目负责Person. "
-        "海岳能Source计划在Test点验收after 成为首批商业客户. ",
+        "æµ·å²³èƒ½Sourceç¡®è®¤æ¾œèˆŸç§‘Skillis æ™ºå·¡å¹³å°çš„å¼€å‘æ–¹, Chen Yuis å®žæ–½é¡¹ç›®è´Ÿè´£Person. "
+        "æµ·å²³èƒ½Sourceè®¡åˆ’åœ¨Testç‚¹éªŒæ”¶after æˆä¸ºé¦–æ‰¹å•†ä¸šå®¢æˆ·. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-03-15T16:00:00Z",
-        "澜舟科Skill董事会批准智巡平台在 2026  year 4  month 1  day从Test点阶SegmentConvert为商业发布. "
-        "周岚以首席执行官身份签署了发布决议. ",
+        "æ¾œèˆŸç§‘Skillè‘£äº‹ä¼šæ‰¹å‡†æ™ºå·¡å¹³å°åœ¨ 2026  year 4  month 1  dayä»ŽTestç‚¹é˜¶SegmentConvertä¸ºå•†ä¸šå‘å¸ƒ. "
+        "å‘¨å²šä»¥é¦–å¸­æ‰§è¡Œå®˜èº«ä»½ç­¾ç½²äº†å‘å¸ƒå†³è®®. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-04-01T08:00:00Z",
-        "智巡平台今天正式商业发布, 不再Location于Test点阶Segment. "
-        "海岳能Source成为智巡平台首商业客户, Chen Yu继续负责交付. ",
+        "æ™ºå·¡å¹³å°ä»Šå¤©æ­£å¼å•†ä¸šå‘å¸ƒ, ä¸å†LocationäºŽTestç‚¹é˜¶Segment. "
+        "æµ·å²³èƒ½Sourceæˆä¸ºæ™ºå·¡å¹³å°é¦–å•†ä¸šå®¢æˆ·, Chen Yuç»§ç»­è´Ÿè´£äº¤ä»˜. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-04-18T13:00:00Z",
-        "澜舟科Skill在星港市总部公布运营数据: 智巡平台already 覆Cover 60 台风机, "
-        "海岳能Source仍is  HY-2026-01 协议under 的合作伙伴 and 客户. ",
+        "æ¾œèˆŸç§‘Skillåœ¨æ˜Ÿæ¸¯å¸‚æ€»éƒ¨å…¬å¸ƒè¿è¥æ•°æ®: æ™ºå·¡å¹³å°already è¦†Cover 60 å°é£Žæœº, "
+        "æµ·å²³èƒ½Sourceä»is  HY-2026-01 åè®®under çš„åˆä½œä¼™ä¼´ and å®¢æˆ·. ",
         "baseline",
     ),
     SourceEpisode(
         "2026-04-30T17:00:00Z",
-        "截至 2026  year 4  month 30  day, 周岚仍担任澜舟科Skill首席执行官, "
-        "澜舟科Skill总部仍在星港市；Chen Yu担任智巡平台项目负责Person. ",
+        "æˆªè‡³ 2026  year 4  month 30  day, å‘¨å²šä»æ‹…ä»»æ¾œèˆŸç§‘Skillé¦–å¸­æ‰§è¡Œå®˜, "
+        "æ¾œèˆŸç§‘Skillæ€»éƒ¨ä»åœ¨æ˜Ÿæ¸¯å¸‚ï¼›Chen Yuæ‹…ä»»æ™ºå·¡å¹³å°é¡¹ç›®è´Ÿè´£Person. ",
         "baseline",
     ),
 ]
@@ -113,20 +113,20 @@ BASELINE_EPISODES = [
 TEMPORAL_UPDATES = [
     SourceEpisode(
         "2026-05-10T09:00:00Z",
-        "澜舟科Skill董事会宣布, 自 2026  year 5  month 10  day起, 周岚不再担任首席执行官. "
-        "Chen Yu正式Connect任澜舟科Skill首席执行官, 周岚Convert任首席战略顾问. ",
+        "æ¾œèˆŸç§‘Skillè‘£äº‹ä¼šå®£å¸ƒ, è‡ª 2026  year 5  month 10  dayèµ·, å‘¨å²šä¸å†æ‹…ä»»é¦–å¸­æ‰§è¡Œå®˜. "
+        "Chen Yuæ­£å¼Connectä»»æ¾œèˆŸç§‘Skillé¦–å¸­æ‰§è¡Œå®˜, å‘¨å²šConvertä»»é¦–å¸­æˆ˜ç•¥é¡¾é—®. ",
         "leadership_change",
     ),
     SourceEpisode(
         "2026-06-01T09:00:00Z",
-        "自 2026  year 6  month 1  day起, 澜舟科Skill总部already 从星港市迁至海城市. "
-        "星港市原总部不再is 公司总部, 现改为澜舟科Skill研发in 心. ",
+        "è‡ª 2026  year 6  month 1  dayèµ·, æ¾œèˆŸç§‘Skillæ€»éƒ¨already ä»Žæ˜Ÿæ¸¯å¸‚è¿è‡³æµ·åŸŽå¸‚. "
+        "æ˜Ÿæ¸¯å¸‚åŽŸæ€»éƒ¨ä¸å†is å…¬å¸æ€»éƒ¨, çŽ°æ”¹ä¸ºæ¾œèˆŸç§‘Skillç ”å‘in å¿ƒ. ",
         "headquarters_change",
     ),
     SourceEpisode(
         "2026-06-15T12:00:00Z",
-        "澜舟科Skill and 海岳能Sourcealready 于 2026  year 6  month 15  day提before 终止 HY-2026-01 联合部署协议. "
-        "海岳能Source不再is 澜舟科Skill的联合部署合作伙伴, 但仍is 智巡平台客户. ",
+        "æ¾œèˆŸç§‘Skill and æµ·å²³èƒ½Sourcealready äºŽ 2026  year 6  month 15  dayæbefore ç»ˆæ­¢ HY-2026-01 è”åˆéƒ¨ç½²åè®®. "
+        "æµ·å²³èƒ½Sourceä¸å†is æ¾œèˆŸç§‘Skillçš„è”åˆéƒ¨ç½²åˆä½œä¼™ä¼´, ä½†ä»is æ™ºå·¡å¹³å°å®¢æˆ·. ",
         "partnership_change",
     ),
     SourceEpisode(
@@ -136,10 +136,10 @@ TEMPORAL_UPDATES = [
                 "event": "product_metrics_update",
                 "company_id": "LZ-TECH",
                 "product_id": "ZHIXUN-01",
-                "product_name": "智巡平台",
+                "product_name": "æ™ºå·¡å¹³å°",
                 "commercial_status": "commercial",
                 "covered_turbines": 120,
-                "active_customer": "海岳能Source",
+                "active_customer": "æµ·å²³èƒ½Source",
                 "as_of": "2026-06-20",
             },
             ensure_ascii=False,
@@ -378,9 +378,9 @@ def _episode_to_batch_item(graph_id: str, item: SourceEpisode, index: int) -> Ba
         data=item.data,
         data_type=item.data_type,
         created_at=item.created_at,
-        source_description="MiroFish deep Zep Cloud validation corpus",
+        source_description="Kritikos deep Zep Cloud validation corpus",
         metadata={
-            "source": "mirofish_zep_deep_validation",
+            "source": "Kritikos_zep_deep_validation",
             "phase": item.phase,
             "sequence": index,
         },
@@ -393,8 +393,8 @@ def _add_and_wait(client: Any, graph_id: str, item: SourceEpisode, timeout: int)
         type=item.data_type,
         data=item.data,
         created_at=item.created_at,
-        source_description="MiroFish temporal Zep Cloud validation update",
-        metadata={"source": "mirofish_zep_deep_validation", "phase": item.phase},
+        source_description="Kritikos temporal Zep Cloud validation update",
+        metadata={"source": "Kritikos_zep_deep_validation", "phase": item.phase},
     )
     episode_uuid = _uuid(episode)
     if not episode_uuid:
@@ -410,19 +410,19 @@ def _activities() -> Iterable[AgentActivity]:
             agent_id=101,
             agent_name="Chen Yu",
             action_type="CREATE_POST",
-            action_args={"content": "海城市新总部今天启Use, 智巡平台商业服务正常运行. "},
+            action_args={"content": "æµ·åŸŽå¸‚æ–°æ€»éƒ¨ä»Šå¤©å¯Use, æ™ºå·¡å¹³å°å•†ä¸šæœåŠ¡æ­£å¸¸è¿è¡Œ. "},
             round_num=1,
             timestamp="2026-07-01T09:00:00Z",
         ),
         AgentActivity(
             platform="twitter",
             agent_id=102,
-            agent_name="周岚",
+            agent_name="å‘¨å²š",
             action_type="QUOTE_POST",
             action_args={
                 "original_author_name": "Chen Yu",
-                "original_content": "海城市新总部今天启Use, 智巡平台商业服务正常运行. ",
-                "quote_content": "作为首席战略顾问, 我支持Chen Yu and 新的管理团队. ",
+                "original_content": "æµ·åŸŽå¸‚æ–°æ€»éƒ¨ä»Šå¤©å¯Use, æ™ºå·¡å¹³å°å•†ä¸šæœåŠ¡æ­£å¸¸è¿è¡Œ. ",
+                "quote_content": "ä½œä¸ºé¦–å¸­æˆ˜ç•¥é¡¾é—®, æˆ‘æ”¯æŒChen Yu and æ–°çš„ç®¡ç†å›¢é˜Ÿ. ",
             },
             round_num=1,
             timestamp="2026-07-01T09:05:00Z",
@@ -430,11 +430,11 @@ def _activities() -> Iterable[AgentActivity]:
         AgentActivity(
             platform="twitter",
             agent_id=201,
-            agent_name="海岳能Source",
+            agent_name="æµ·å²³èƒ½Source",
             action_type="LIKE_POST",
             action_args={
                 "post_author_name": "Chen Yu",
-                "post_content": "海城市新总部今天启Use, 智巡平台商业服务正常运行. ",
+                "post_content": "æµ·åŸŽå¸‚æ–°æ€»éƒ¨ä»Šå¤©å¯Use, æ™ºå·¡å¹³å°å•†ä¸šæœåŠ¡æ­£å¸¸è¿è¡Œ. ",
             },
             round_num=1,
             timestamp="2026-07-01T09:06:00Z",
@@ -442,12 +442,12 @@ def _activities() -> Iterable[AgentActivity]:
         AgentActivity(
             platform="twitter",
             agent_id=201,
-            agent_name="海岳能Source",
+            agent_name="æµ·å²³èƒ½Source",
             action_type="CREATE_COMMENT",
             action_args={
                 "post_author_name": "Chen Yu",
-                "post_content": "海城市新总部今天启Use, 智巡平台商业服务正常运行. ",
-                "content": "联合部署协议虽already 终止, 但我们仍is 智巡平台客户. ",
+                "post_content": "æµ·åŸŽå¸‚æ–°æ€»éƒ¨ä»Šå¤©å¯Use, æ™ºå·¡å¹³å°å•†ä¸šæœåŠ¡æ­£å¸¸è¿è¡Œ. ",
+                "content": "è”åˆéƒ¨ç½²åè®®è™½already ç»ˆæ­¢, ä½†æˆ‘ä»¬ä»is æ™ºå·¡å¹³å°å®¢æˆ·. ",
             },
             round_num=2,
             timestamp="2026-07-01T09:10:00Z",
@@ -457,7 +457,7 @@ def _activities() -> Iterable[AgentActivity]:
             agent_id=101,
             agent_name="Chen Yu",
             action_type="FOLLOW",
-            action_args={"target_user_name": "海岳能Source"},
+            action_args={"target_user_name": "æµ·å²³èƒ½Source"},
             round_num=2,
             timestamp="2026-07-01T09:12:00Z",
         ),
@@ -468,7 +468,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     api_key = _require_process_api_key()
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    graph_id = args.graph_id or f"mirofish_zep_deep_{stamp}"
+    graph_id = args.graph_id or f"Kritikos_zep_deep_{stamp}"
     builder = GraphBuilderService(api_key=api_key)
     client = builder.client
     created = False
@@ -484,7 +484,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
     print(f"[zep-deep] graph_id={graph_id}", flush=True)
     try:
-        builder.create_graph("MiroFish Zep Cloud Deep Validation", graph_id=graph_id)
+        builder.create_graph("Kritikos Zep Cloud Deep Validation", graph_id=graph_id)
         created = True
         print("[zep-deep] graph created", flush=True)
 
@@ -493,7 +493,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         ontology_probe = {"entity_types": [{"name": "ProbeEntity", "attributes": []}], "edge_types": []}
         try:
             builder.set_ontology(graph_id, ontology_probe)
-            result["empty_attribute_ontology_probe"] = "accepted_after_mirofish_normalization"
+            result["empty_attribute_ontology_probe"] = "accepted_after_Kritikos_normalization"
         except Exception as error:
             result["empty_attribute_ontology_probe"] = {
                 "error_type": type(error).__name__,
@@ -507,7 +507,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         operation_id = f"deep-validation-{stamp}"
         batch = client.batch.create(
             metadata={
-                "mirofish_operation_id": operation_id,
+                "Kritikos_operation_id": operation_id,
                 "graph_id": graph_id,
                 "suite": "zep_deep_validation",
             }
@@ -563,7 +563,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         baseline_names = {_uuid(node): node.name for node in baseline_nodes}
         baseline_ceo = client.graph.search(
             graph_id=graph_id,
-            query="截至2026 year4 month底, 谁担任澜舟科Skill首席执行官? ",
+            query="æˆªè‡³2026 year4 monthåº•, è°æ‹…ä»»æ¾œèˆŸç§‘Skillé¦–å¸­æ‰§è¡Œå®˜? ",
             scope="edges",
             reranker="cross_encoder",
             limit=10,
@@ -602,9 +602,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         updater_drained = True
         updater_stats = updater.get_stats()
         if updater_stats["items_sent"] != 5 or updater_stats["pending_episode_count"] != 0:
-            raise AssertionError(f"unexpected MiroFish updater stats: {updater_stats}")
-        result["mirofish_updater"] = updater_stats
-        print("[zep-deep] MiroFish updater processed 5 mock activities", flush=True)
+            raise AssertionError(f"unexpected Kritikos updater stats: {updater_stats}")
+        result["Kritikos_updater"] = updater_stats
+        print("[zep-deep] Kritikos updater processed 5 mock activities", flush=True)
 
         final_nodes = fetch_all_nodes(client, graph_id, page_size=2)
         final_edges = fetch_all_edges(client, graph_id, page_size=2)
@@ -614,14 +614,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
         edge_search = client.graph.search(
             graph_id=graph_id,
-            query="澜舟科Skill当before 首席执行官, 当before 总部以 and  and 海岳能Source的当before 合作relationsis 什么? ",
+            query="æ¾œèˆŸç§‘Skillå½“before é¦–å¸­æ‰§è¡Œå®˜, å½“before æ€»éƒ¨ä»¥ and  and æµ·å²³èƒ½Sourceçš„å½“before åˆä½œrelationsis ä»€ä¹ˆ? ",
             scope="edges",
             reranker="cross_encoder",
             limit=20,
         )
         node_search = client.graph.search(
             graph_id=graph_id,
-            query="澜舟科Skill管理层Person物",
+            query="æ¾œèˆŸç§‘Skillç®¡ç†å±‚Personç‰©",
             scope="nodes",
             reranker="rrf",
             limit=10,
@@ -629,7 +629,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         typed_edge_search = client.graph.search(
             graph_id=graph_id,
-            query="公司管理职位发生了什么ChangeTransform? ",
+            query="å…¬å¸ç®¡ç†èŒä½å‘ç”Ÿäº†ä»€ä¹ˆChangeTransform? ",
             scope="edges",
             reranker="rrf",
             limit=10,
@@ -637,7 +637,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         auto_search = client.graph.search(
             graph_id=graph_id,
-            query="总结澜舟科Skill最新的管理层, 总部, Output品 and 海岳能Sourcerelations. ",
+            query="æ€»ç»“æ¾œèˆŸç§‘Skillæœ€æ–°çš„ç®¡ç†å±‚, æ€»éƒ¨, Outputå“ and æµ·å²³èƒ½Sourcerelations. ",
             scope="auto",
             max_characters=3000,
             return_raw_results=True,
@@ -654,7 +654,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             (
                 node
                 for node in final_nodes
-                if node.name == "澜舟科Skill" and "Company" in (node.labels or [])
+                if node.name == "æ¾œèˆŸç§‘Skill" and "Company" in (node.labels or [])
             ),
             max(
                 final_nodes,
@@ -715,7 +715,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 
         if len(entity_context.related_edges) != len(complete_node_edges):
             raise AssertionError(
-                "MiroFish entity context omitted incoming or outgoing node edges"
+                "Kritikos entity context omitted incoming or outgoing node edges"
             )
 
         result["runtime_assertions"] = {
@@ -846,7 +846,7 @@ def _compact_result(result: dict[str, Any]) -> dict[str, Any]:
         "temporal_update_episode_count": len(
             result.get("temporal_update_episode_uuids", [])
         ),
-        "mirofish_updater": result.get("mirofish_updater"),
+        "Kritikos_updater": result.get("Kritikos_updater"),
         "final": {
             key: final.get(key)
             for key in (

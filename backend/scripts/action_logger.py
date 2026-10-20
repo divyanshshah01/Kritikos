@@ -1,15 +1,15 @@
-"""
-动作 day志记录Device
-Use于记录OASIS模Draftin 每Agent的动作, 供after 端监控使Use
+﻿"""
+åŠ¨ä½œ dayå¿—è®°å½•Device
+UseäºŽè®°å½•OASISæ¨¡Draftin æ¯Agentçš„åŠ¨ä½œ, ä¾›after ç«¯ç›‘æŽ§ä½¿Use
 
- day志结构:
+ dayå¿—ç»“æž„:
     sim_xxx/
-    ├── twitter/
-    │   └── actions.jsonl    # Twitter 平台动作 day志
-    ├── reddit/
-    │   └── actions.jsonl    # Reddit 平台动作 day志
-    ├── simulation.log       # 主模Draft进程 day志
-    └── run_state.json       # 运行状态 (API 查询Use) 
+    â”œâ”€â”€ twitter/
+    â”‚   â””â”€â”€ actions.jsonl    # Twitter å¹³å°åŠ¨ä½œ dayå¿—
+    â”œâ”€â”€ reddit/
+    â”‚   â””â”€â”€ actions.jsonl    # Reddit å¹³å°åŠ¨ä½œ dayå¿—
+    â”œâ”€â”€ simulation.log       # ä¸»æ¨¡Draftè¿›ç¨‹ dayå¿—
+    â””â”€â”€ run_state.json       # è¿è¡ŒçŠ¶æ€ (API æŸ¥è¯¢Use) 
 """
 
 import json
@@ -24,11 +24,11 @@ class PlatformActionLogger:
     
     def __init__(self, platform: str, base_dir: str):
         """
-        初StartTransform day志记录Device
+        åˆStartTransform dayå¿—è®°å½•Device
         
         Args:
-            platform: 平台名称 (twitter/reddit)
-            base_dir: 模Draft目录的基Base路径
+            platform: å¹³å°åç§° (twitter/reddit)
+            base_dir: æ¨¡Draftç›®å½•çš„åŸºBaseè·¯å¾„
         """
         self.platform = platform
         self.base_dir = base_dir
@@ -50,7 +50,7 @@ class PlatformActionLogger:
         result: Optional[str] = None,
         success: bool = True
     ):
-        """记录一动作"""
+        """è®°å½•ä¸€åŠ¨ä½œ"""
         entry = {
             "round": round_num,
             "timestamp": datetime.now().isoformat(),
@@ -66,7 +66,7 @@ class PlatformActionLogger:
             f.write(json.dumps(entry, ensure_ascii=False) + '\n')
     
     def log_round_start(self, round_num: int, simulated_hour: int):
-        """记录 rounds times开Start"""
+        """è®°å½• rounds timeså¼€Start"""
         entry = {
             "round": round_num,
             "timestamp": datetime.now().isoformat(),
@@ -78,7 +78,7 @@ class PlatformActionLogger:
             f.write(json.dumps(entry, ensure_ascii=False) + '\n')
     
     def log_round_end(self, round_num: int, actions_count: int):
-        """记录 rounds times结Bundle"""
+        """è®°å½• rounds timesç»“Bundle"""
         entry = {
             "round": round_num,
             "timestamp": datetime.now().isoformat(),
@@ -90,7 +90,7 @@ class PlatformActionLogger:
             f.write(json.dumps(entry, ensure_ascii=False) + '\n')
     
     def log_simulation_start(self, config: Dict[str, Any]):
-        """记录模Draft开Start"""
+        """è®°å½•æ¨¡Draftå¼€Start"""
         entry = {
             "timestamp": datetime.now().isoformat(),
             "event_type": "simulation_start",
@@ -103,7 +103,7 @@ class PlatformActionLogger:
             f.write(json.dumps(entry, ensure_ascii=False) + '\n')
     
     def log_simulation_end(self, total_rounds: int, total_actions: int):
-        """记录模Draft结Bundle"""
+        """è®°å½•æ¨¡Draftç»“Bundle"""
         entry = {
             "timestamp": datetime.now().isoformat(),
             "event_type": "simulation_end",
@@ -118,8 +118,8 @@ class PlatformActionLogger:
 
 class SimulationLogManager:
     """
-    模Draft day志管理Device
-    统一管理所has day志文件, 按平台 min离
+    æ¨¡Draft dayå¿—ç®¡ç†Device
+    ç»Ÿä¸€ç®¡ç†æ‰€has dayå¿—æ–‡ä»¶, æŒ‰å¹³å° minç¦»
     """
     
     def __init__(self, simulation_dir: str):
@@ -134,11 +134,11 @@ class SimulationLogManager:
         self.reddit_logger: Optional[PlatformActionLogger] = None
         self._main_logger: Optional[logging.Logger] = None
         
-        # 设置主 day志
+        # è®¾ç½®ä¸» dayå¿—
         self._setup_main_logger()
     
     def _setup_main_logger(self):
-        """设置主模Draft day志"""
+        """è®¾ç½®ä¸»æ¨¡Draft dayå¿—"""
         log_path = os.path.join(self.simulation_dir, "simulation.log")
         
         # Create logger
@@ -146,7 +146,7 @@ class SimulationLogManager:
         self._main_logger.setLevel(logging.INFO)
         self._main_logger.handlers.clear()
         
-        # 文件Location理Device
+        # æ–‡ä»¶Locationç†Device
         file_handler = logging.FileHandler(log_path, encoding='utf-8', mode='w')
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(logging.Formatter(
@@ -167,19 +167,19 @@ class SimulationLogManager:
         self._main_logger.propagate = False
     
     def get_twitter_logger(self) -> PlatformActionLogger:
-        """获取 Twitter 平台 day志记录Device"""
+        """èŽ·å– Twitter å¹³å° dayå¿—è®°å½•Device"""
         if self.twitter_logger is None:
             self.twitter_logger = PlatformActionLogger("twitter", self.simulation_dir)
         return self.twitter_logger
     
     def get_reddit_logger(self) -> PlatformActionLogger:
-        """获取 Reddit 平台 day志记录Device"""
+        """èŽ·å– Reddit å¹³å° dayå¿—è®°å½•Device"""
         if self.reddit_logger is None:
             self.reddit_logger = PlatformActionLogger("reddit", self.simulation_dir)
         return self.reddit_logger
     
     def log(self, message: str, level: str = "info"):
-        """记录主 day志"""
+        """è®°å½•ä¸» dayå¿—"""
         if self._main_logger:
             getattr(self._main_logger, level.lower(), self._main_logger.info)(message)
     
@@ -196,11 +196,11 @@ class SimulationLogManager:
         self.log(message, "debug")
 
 
-# ============ 兼容旧Connect口 ============
+# ============ å…¼å®¹æ—§Connectå£ ============
 
 class ActionLogger:
     """
-    动作 day志记录Device (兼容旧Connect口) 
+    åŠ¨ä½œ dayå¿—è®°å½•Device (å…¼å®¹æ—§Connectå£) 
     Recommend using SimulationLogManager instead
     """
     
@@ -288,12 +288,12 @@ class ActionLogger:
             f.write(json.dumps(entry, ensure_ascii=False) + '\n')
 
 
-# 全局 day志实例 (兼容旧Connect口) 
+# å…¨å±€ dayå¿—å®žä¾‹ (å…¼å®¹æ—§Connectå£) 
 _global_logger: Optional[ActionLogger] = None
 
 
 def get_logger(log_path: Optional[str] = None) -> ActionLogger:
-    """获取全局 day志实例 (兼容旧Connect口) """
+    """èŽ·å–å…¨å±€ dayå¿—å®žä¾‹ (å…¼å®¹æ—§Connectå£) """
     global _global_logger
     
     if log_path:

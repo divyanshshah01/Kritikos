@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Mapping, Protocol, Sequence
 
 
-REPOSITORY = "666ghj/MiroFish"
+REPOSITORY = "divyanshshah01/Kritikos"
 REPOSITORY_OWNER, REPOSITORY_NAME = REPOSITORY.split("/", 1)
 INTERVAL_DAYS = 13
 STATE_RELATIVE = Path(".github/star-history/history.json")

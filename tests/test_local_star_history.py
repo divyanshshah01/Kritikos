@@ -1,4 +1,4 @@
-import base64
+﻿import base64
 import hashlib
 import io
 import json
@@ -70,7 +70,7 @@ def page(total, edges, has_next=False, end_cursor=None, remaining=1_000):
 def state_with_snapshots(snapshots=None):
     return {
         "schema_version": 1,
-        "repository": "666ghj/MiroFish",
+        "repository": "divyanshshah01/Kritikos",
         "timezone": "UTC",
         "ongoing_interval_days": 13,
         "reconstruction": {
@@ -553,7 +553,7 @@ class StarHistoryBehaviorTests(unittest.TestCase):
     def test_svg_is_accessible_self_contained_and_deterministic(self):
         state = {
             "schema_version": 1,
-            "repository": "666ghj/MiroFish",
+            "repository": "divyanshshah01/Kritikos",
             "timezone": "UTC",
             "ongoing_interval_days": 13,
             "reconstruction": {
@@ -577,7 +577,7 @@ class StarHistoryBehaviorTests(unittest.TestCase):
         self.assertNotEqual(light, dark)
         self.assertIn(b"viewBox=\"0 0 800 533.333\"", light)
         self.assertIn(b"Star History", light)
-        self.assertIn(b"666ghj/MiroFish", light)
+        self.assertIn(b"divyanshshah01/Kritikos", light)
         self.assertIn(b"star-history.com", light)
         self.assertIn(b"feTurbulence", light)
         self.assertIn(b"feDisplacementMap", light)
@@ -659,9 +659,9 @@ class StarHistoryBehaviorTests(unittest.TestCase):
             element.text
             for element in root.iter()
             if element.tag.rsplit("}", 1)[-1] == "text"
-            and element.text == "666ghj/MiroFish"
+            and element.text == "divyanshshah01/Kritikos"
         ]
-        self.assertEqual(legend_labels, ["666ghj/MiroFish"])
+        self.assertEqual(legend_labels, ["divyanshshah01/Kritikos"])
         for element in root.iter():
             for name, value in element.attrib.items():
                 local = name.rsplit("}", 1)[-1].lower()
@@ -733,7 +733,7 @@ class StarHistoryBehaviorTests(unittest.TestCase):
 
         short_window = {
             "schema_version": 1,
-            "repository": "666ghj/MiroFish",
+            "repository": "divyanshshah01/Kritikos",
             "timezone": "UTC",
             "ongoing_interval_days": 13,
             "reconstruction": {
