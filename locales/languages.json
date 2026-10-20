@@ -1,0 +1,14 @@
+{
+  "en": {
+    "label": "English",
+    "llmInstruction": "Please respond in English."
+  },
+  "hi": {
+    "label": "हिन्दी",
+    "llmInstruction": "कृपया हिंदी में उत्तर दें।"
+  },
+  "ru": {
+    "label": "Русский",
+    "llmInstruction": "Пожалуйста, отвечайте на русском языке."
+  }
+}
