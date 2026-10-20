@@ -1,0 +1,10 @@
+.env
+.env.*
+.env.local
+.env.production
+.env.development
+.venv/
+backend/.venv/
+backend/uploads/
+scratch/
+*.log
