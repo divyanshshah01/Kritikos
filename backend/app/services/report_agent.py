@@ -546,26 +546,26 @@ Output valid JSON matching this schema:
 Note: The sections array must have between 3 and 4 items."""
 
 PLAN_USER_PROMPT_TEMPLATE = """\
- [预测场景设定] 
-我们向模Draft世界注入的Change量 (模Draft需Request) : {simulation_requirement}
+[Simulation Scenario Setting]
+Variable injected into the simulation (Simulation Requirement): {simulation_requirement}
 
- [模Draft世界规模] 
+[Simulated World Scale]
 - Number of entities participating in the simulation: {total_nodes}
-- entities间Output生的relations数量: {total_edges}
-- entitiesClass型 min布: {entity_types}
-- 活跃Agent数量: {total_entities}
+- Relationships generated between entities: {total_edges}
+- Entity types distribution: {entity_types}
+- Active agents: {total_entities}
 
- [模Draft预测到的部 minnot 来事实样本] 
+[Predicted Future Fact Samples]
 {related_facts_json}
 
-请以「on 帝视角」审视这not 来预Perform: 
-1. 在我们设定的 items件under , not 来呈现Output了什么样的状态? 
-2. 各ClassPerson群 (Agent) is 如何反应 and 行动的? 
-3. 这模Draft揭Example了哪些值得关注的not 来趋势? 
+Review these prediction results with an analytical, comprehensive perspective:
+1. Under the conditions tested, what market state and reception emerged?
+2. How did each stakeholder cohort (customers, enterprise buyers, investors, regulators, skeptics) react and behave?
+3. What critical risks, bottlenecks, and market opportunities did the simulation reveal?
 
-Design the optimal report chapter structure based on prediction results. 
+Design the optimal report chapter structure based on prediction results.
 
- [再 times提醒] 报告章节数量: 最少2, 最多5, 内容要精炼聚焦于核心预测发现. """
+[Important Note] Number of report chapters: 3 to 4, focused on core validation findings and actionable analysis."""
 
 # ── 章节生成 prompt ──
 
@@ -784,53 +784,53 @@ class ReportAgent:
         logger.info(t('report.agentInitDone', graphId=graph_id, simulationId=simulation_id))
     
     def _define_tools(self) -> Dict[str, Dict[str, Any]]:
-        """定义可Use工具"""
+        """Define available query tools."""
         return {
             "insight_forge": {
                 "name": "insight_forge",
                 "description": TOOL_DESC_INSIGHT_FORGE,
                 "parameters": {
-                    "query": "你想深入 min析的问题 or 话题",
-                    "report_context": "当before 报告章节的on under 文 (可选, has助于生成更精准的Child问题) "
+                    "query": "Topic, question, or scenario to analyze in depth across simulation dynamics",
+                    "report_context": "Current chapter context (optional, helps generate targeted questions)"
                 }
             },
             "panorama_search": {
                 "name": "panorama_search",
                 "description": TOOL_DESC_PANORAMA_SEARCH,
                 "parameters": {
-                    "query": "搜索查询, Use于相关性排序",
-                    "include_expired": "is noInclude过期/历史内容 (Default认True) "
+                    "query": "Search query for relevance ranking across simulation events",
+                    "include_expired": "Whether to include expired/historical content (default True)"
                 }
             },
             "quick_search": {
                 "name": "quick_search",
                 "description": TOOL_DESC_QUICK_SEARCH,
                 "parameters": {
-                    "query": "搜索查询字Symbol串",
-                    "limit": "Return结果数量 (可选, Default认10) "
+                    "query": "Specific search query string for fast factual lookup",
+                    "limit": "Number of results to return (optional, default 10)"
                 }
             },
             "interview_agents": {
                 "name": "interview_agents",
                 "description": TOOL_DESC_INTERVIEW_AGENTS,
                 "parameters": {
-                    "interview_topic": "Interview topic or 需Request描Description (如: '了解Learning生对宿舍甲醛Event的看Method') ",
-                    "max_agents": "最多采访的Agent数量 (可选, Default认5, 最Large10) "
+                    "interview_topic": "Topic, questions, or requirements to interview simulated agents about",
+                    "max_agents": "Maximum number of agents to interview (optional, default 3, max 5)"
                 }
             }
         }
     
     def _execute_tool(self, tool_name: str, parameters: Dict[str, Any], report_context: str = "") -> str:
         """
-        执行工具InvokeUse
+        Execute tool call
         
         Args:
-            tool_name: 工具名称
-            parameters: 工具参数
-            report_context: 报告on under 文 (Use于InsightForge) 
+            tool_name: Tool name
+            parameters: Tool parameters
+            report_context: Report context for InsightForge
             
         Returns:
-            工具执行结果 (文本Format) 
+            Tool execution result text
         """
         logger.info(t('report.executingTool', toolName=tool_name, params=parameters))
         
@@ -848,7 +848,6 @@ class ReportAgent:
                 raw_text = result.to_text()
             
             elif tool_name == "panorama_search":
-                # 广度搜索 - 获取全貌
                 query = parameters.get("query", "")
                 include_expired = parameters.get("include_expired", True)
                 if isinstance(include_expired, str):
@@ -861,7 +860,6 @@ class ReportAgent:
                 raw_text = result.to_text()
             
             elif tool_name == "quick_search":
-                # 简单搜索 - 快速检索
                 query = parameters.get("query", "")
                 limit = parameters.get("limit", 10)
                 if isinstance(limit, str):
@@ -874,24 +872,41 @@ class ReportAgent:
                 raw_text = result.to_text()
             
             elif tool_name == "interview_agents":
-                # 深度采访 - InvokeUseTrue实的OASIS采访API获取模DraftAgent的回答 (双平台) 
-                interview_topic = parameters.get("interview_topic", parameters.get("query", ""))
-                max_agents = parameters.get("max_agents", 3)
-                if isinstance(max_agents, str):
+                interview_topic = (
+                    parameters.get("interview_topic")
+                    or parameters.get("query")
+                    or parameters.get("topic")
+                    or parameters.get("prompt")
+                    or ("\n".join(parameters["questions"]) if isinstance(parameters.get("questions"), list) else parameters.get("questions"))
+                    or self.simulation_requirement
+                )
+                agents_param = parameters.get("agents")
+                max_agents = parameters.get("max_agents")
+                if max_agents is None and isinstance(agents_param, list):
+                    max_agents = len(agents_param)
+                if max_agents is None:
+                    max_agents = 3
+                try:
                     max_agents = int(max_agents)
-                max_agents = min(max_agents, 3)
+                except (ValueError, TypeError):
+                    max_agents = 3
+                max_agents = max(1, min(max_agents, 5))
                 result = self.zep_tools.interview_agents(
                     simulation_id=self.simulation_id,
-                    interview_requirement=interview_topic,
+                    interview_requirement=str(interview_topic),
                     simulation_requirement=self.simulation_requirement,
                     max_agents=max_agents
                 )
                 raw_text = result.to_text()
             
-            # ========== 向after 兼容的旧工具 (内部重定向到新工具)  ==========
+            # ========== Aliases & backwards-compatibility ==========
+            
+            elif tool_name in ("simulation_query", "query_simulation", "simulation_analytics"):
+                logger.info(f"Redirecting {tool_name} to insight_forge")
+                query = parameters.get("query", self.simulation_requirement)
+                return self._execute_tool("insight_forge", {"query": query}, report_context)
             
             elif tool_name == "search_graph":
-                # 重定向到 quick_search
                 logger.info(t('report.redirectToQuickSearch'))
                 return self._execute_tool("quick_search", parameters, report_context)
             
@@ -908,7 +923,6 @@ class ReportAgent:
                 raw_text = json.dumps(result, ensure_ascii=False, indent=2)
             
             elif tool_name == "get_simulation_context":
-                # 重定向到 insight_forge, 因为它更StrongLarge
                 logger.info(t('report.redirectToInsightForge'))
                 query = parameters.get("query", self.simulation_requirement)
                 return self._execute_tool("insight_forge", {"query": query}, report_context)
@@ -923,19 +937,27 @@ class ReportAgent:
                 raw_text = json.dumps(result, ensure_ascii=False, indent=2)
             
             else:
-                return f"not Knowledge工具: {tool_name}. 请使Use以under 工具之一: insight_forge, panorama_search, quick_search"
+                return (
+                    f"Unknown tool: '{tool_name}'. Available tools: "
+                    "insight_forge, panorama_search, quick_search, interview_agents."
+                )
 
-            # 截断结果以适配 TPM 速率限制
+            # Truncate result to stay well within TPM token limits
             if len(raw_text) > 1800:
                 raw_text = raw_text[:1800] + "\n... [truncated for context limit]"
             return raw_text
                 
         except Exception as e:
             logger.error(t('report.toolExecFailed', toolName=tool_name, error=str(e)))
-            return f"工具执行失败: {str(e)}"
+            return f"Tool execution failed: {str(e)}"
     
-    # 合Method的工具名称集合, Use于裸 JSON 兜底解析 hour校验
-    VALID_TOOL_NAMES = {"insight_forge", "panorama_search", "quick_search", "interview_agents"}
+    # Valid tool names set, used for fallback parsing and validation
+    VALID_TOOL_NAMES = {
+        "insight_forge", "panorama_search", "quick_search", "interview_agents",
+        "simulation_query", "query_simulation", "simulation_analytics",
+        "search_graph", "get_graph_statistics", "get_entity_summary",
+        "get_simulation_context", "get_entities_by_type"
+    }
 
     def _parse_tool_calls(self, response: str) -> List[Dict[str, Any]]:
         """

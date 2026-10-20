@@ -7,7 +7,101 @@ gracefully adapting request parameters for GPT-5 family models.
 
 from __future__ import annotations
 
+import json
+import re
 from typing import Any, Dict, List, Optional
+
+
+class _SyntheticMessage:
+    def __init__(self, content: str):
+        self.content = content
+        self.role = "assistant"
+
+
+class _SyntheticChoice:
+    def __init__(self, content: str):
+        self.message = _SyntheticMessage(content)
+        self.finish_reason = "stop"
+
+
+class _SyntheticChatCompletion:
+    def __init__(self, content: str, model: str):
+        self.choices = [_SyntheticChoice(content)]
+        self.model = model
+
+
+def _extract_groq_failed_generation(error: Exception) -> Optional[str]:
+    """Extract failed_generation string from a Groq 400 tool_use_failed error."""
+    status_code = getattr(error, "status_code", None)
+    if status_code != 400:
+        return None
+
+    details: Dict[str, Any] = {}
+    body = getattr(error, "body", None)
+    if isinstance(body, dict):
+        raw_error = body.get("error")
+        details = raw_error if isinstance(raw_error, dict) else body
+
+    if not details and hasattr(error, "response"):
+        try:
+            resp_json = error.response.json()
+            if isinstance(resp_json, dict):
+                raw_error = resp_json.get("error")
+                details = raw_error if isinstance(raw_error, dict) else resp_json
+        except Exception:
+            pass
+
+    msg = str(details.get("message") or str(error)).lower()
+    code = str(details.get("code") or "").lower()
+
+    if "tool choice is none" in msg or "tool_use_failed" in code:
+        failed_gen = details.get("failed_generation")
+        if failed_gen:
+            return str(failed_gen)
+
+        err_str = str(error)
+        match = re.search(r"['\"]failed_generation['\"]\s*:\s*['\"](.*?)['\"](?:\s*,\s*['\"][a-zA-Z_]+['\"]|\s*\}\s*\})", err_str, re.DOTALL)
+        if match:
+            try:
+                return match.group(1).encode('utf-8').decode('unicode_escape')
+            except Exception:
+                return match.group(1)
+
+    return None
+
+
+def format_failed_tool_generation(failed_gen: str) -> str:
+    """Format failed_generation into standard <tool_call> XML so caller can parse and execute it."""
+    try:
+        data = json.loads(failed_gen)
+        if isinstance(data, dict):
+            # Shape 1: {"name": "tool_call", "arguments": {"name": "...", "parameters": ...}}
+            if data.get("name") == "tool_call" and "arguments" in data:
+                args = data["arguments"]
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args)
+                    except Exception:
+                        args = {"raw": args}
+                if isinstance(args, dict):
+                    tool_name = args.get("name") or "tool"
+                    params = args.get("parameters") or args.get("params") or {}
+                    return f'<tool_call>\n{json.dumps({"name": tool_name, "parameters": params}, ensure_ascii=False)}\n</tool_call>'
+
+            # Shape 2: {"name": "...", "parameters": ...} or {"name": "...", "arguments": ...}
+            if "name" in data and ("parameters" in data or "arguments" in data):
+                tool_name = data["name"]
+                params = data.get("parameters") or data.get("arguments") or {}
+                return f'<tool_call>\n{json.dumps({"name": tool_name, "parameters": params}, ensure_ascii=False)}\n</tool_call>'
+    except Exception:
+        pass
+
+    trimmed = failed_gen.strip()
+    if trimmed.startswith("<tool_call>") and trimmed.endswith("</tool_call>"):
+        return trimmed
+    if trimmed.startswith("{") and trimmed.endswith("}"):
+        return f'<tool_call>\n{trimmed}\n</tool_call>'
+    return failed_gen
 
 
 def is_gpt5_family(model: Optional[str]) -> bool:
@@ -56,6 +150,8 @@ def create_chat_completion(
 
     import time
     import logging
+    import json
+    import re
 
     compat_logger = logging.getLogger(__name__)
     max_retries = 3
@@ -63,6 +159,12 @@ def create_chat_completion(
         try:
             return client.chat.completions.create(**kwargs)
         except Exception as e:
+            failed_gen = _extract_groq_failed_generation(e)
+            if failed_gen:
+                compat_logger.info("Recovered tool call from Groq tool_use_failed error")
+                formatted = format_failed_tool_generation(failed_gen)
+                return _SyntheticChatCompletion(formatted, model=model)
+
             status_code = getattr(e, "status_code", None)
             is_rate_limit = status_code == 429 or "rate_limit" in str(e).lower() or "429" in str(e)
             if is_rate_limit and attempt < max_retries - 1:

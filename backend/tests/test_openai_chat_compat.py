@@ -1,4 +1,4 @@
-﻿from types import SimpleNamespace
+from types import SimpleNamespace
 
 import pytest
 
@@ -121,3 +121,28 @@ def test_extracts_text_from_supported_content_shapes():
 
     assert extract_chat_completion_text(response) == "first second third"
     assert extract_chat_completion_text(SimpleNamespace(choices=[])) == ""
+
+
+def test_groq_tool_use_failed_recovers_synthetic_completion():
+    groq_error = RuntimeError("Tool choice is none, but model called a tool")
+    groq_error.status_code = 400
+    groq_error.body = {
+        "error": {
+            "message": "Tool choice is none, but model called a tool",
+            "type": "invalid_request_error",
+            "code": "tool_use_failed",
+            "failed_generation": '{"name": "tool_call", "arguments": {"name": "interview_agents", "parameters": {"topic": "feedback"}}}'
+        }
+    }
+    recorder = CompletionRecorder(error=groq_error)
+
+    result = create_chat_completion(
+        client_for(recorder),
+        model="openai/gpt-oss-120b",
+        messages=[{"role": "user", "content": "hi"}],
+    )
+
+    text = extract_chat_completion_text(result)
+    assert "<tool_call>" in text
+    assert '"name": "interview_agents"' in text
+    assert '"topic": "feedback"' in text
