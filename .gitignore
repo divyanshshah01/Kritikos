@@ -62,3 +62,4 @@ data/
 # 临时与日志目录
 log/
 scratch/
+.vercel/
