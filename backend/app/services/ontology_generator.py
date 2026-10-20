@@ -195,11 +195,11 @@ class OntologyGenerator:
         
         return result
     
-    # 传给 LLM 的文本最Large长度 (5万字) 
-    MAX_TEXT_LENGTH_FOR_LLM = 50000
-    LONG_TEXT_CHUNK_SIZE = 8000
+    # Maximum text length passed to LLM (prevents HTTP 413 token limit errors with Groq/OpenAI)
+    MAX_TEXT_LENGTH_FOR_LLM = 16000
+    LONG_TEXT_CHUNK_SIZE = 4000
     LONG_TEXT_CHUNK_OVERLAP = 200
-    MAX_LONG_TEXT_CHUNKS = 60
+    MAX_LONG_TEXT_CHUNKS = 20
     MIN_LONG_TEXT_EXCERPT = 400
     
     def _build_user_message(
@@ -212,31 +212,31 @@ class OntologyGenerator:
         
         combined_text = self._build_document_context(document_texts)
         
-        message = f"""## 模Draft需Request
+        message = f"""## Simulation Requirements
 
 {simulation_requirement}
 
-## 文档内容
+## Document Content
 
 {combined_text}
 """
         
         if additional_context:
             message += f"""
-## 额外说明
+## Additional Context
 
 {additional_context}
 """
         
         message += """
-请根据以on 内容, 设计适合社会舆论模Draft的entitiesClass型 and relationsClass型. 
+Based on the above content, design entity types and relationship types suitable for market and stakeholder simulation.
 
-**必须遵守的规则**: 
-1. 必须正好输Output10entitiesClass型
-2. 最after 2必须is 兜底Class型: Person (Person兜底)  and  Organization (组织兜底) 
-3. before 8is 根据文本内容设计的具体Class型
-4. 所hasentitiesClass型必须is 现实in 可以发声的主体, 不能is 抽象概念
-5. 属性名不能使Use name, uuid, group_id, graph_id 等保留字, Use full_name, org_name 等替代
+**Required Rules**:
+1. Output exactly 10 entity types.
+2. The last 2 MUST be fallback types: Person (individual fallback) and Organization (organization fallback).
+3. The first 8 must be specific entity types designed based on the document content and market ecosystem.
+4. All entity types must be real-world agents that can speak, evaluate, and interact (not abstract concepts).
+5. Attribute names must NOT use reserved keywords such as name, uuid, group_id, graph_id (use full_name, org_name, etc. instead).
 """
         
         return message
@@ -273,13 +273,13 @@ class OntologyGenerator:
             )
 
         if len(context) > self.MAX_TEXT_LENGTH_FOR_LLM:
-            marker = "\n\n...(Chunkingon under 文already 压缩到本体 min析长度限制内)..."
+            marker = "\n\n...(Chunked context compressed to ontology analysis limit)..."
             context = context[:self.MAX_TEXT_LENGTH_FOR_LLM - len(marker)] + marker
 
         return context
 
     def _collect_document_chunks(self, document_texts: List[str]) -> List[Dict[str, Any]]:
-        """按文档收集Chunking, 保留文档 and Chunking编号方便提Example词定位. """
+        """Collect chunks by document, preserving document and chunk indexing."""
 
         all_chunks: List[Dict[str, Any]] = []
         for doc_index, text in enumerate(document_texts, 1):
@@ -362,13 +362,13 @@ class OntologyGenerator:
 
     @staticmethod
     def _excerpt_text(text: str, char_limit: int) -> str:
-        """长Chunking保留首尾, 避免每Chunking内部再 timesChange成只看开头. """
+        """Preserve start and end of chunk to maintain context representation."""
 
         text = text.strip()
         if len(text) <= char_limit:
             return text
 
-        marker = "\n...(本Chunkingin 间内容省略)...\n"
+        marker = "\n...(Intermediate content omitted)...\n"
         if char_limit <= len(marker) + 20:
             return text[:char_limit]
 
@@ -378,7 +378,7 @@ class OntologyGenerator:
         return f"{text[:head_len].rstrip()}{marker}{text[-tail_len:].lstrip()}"
     
     def _validate_and_process(self, result: Dict[str, Any]) -> Dict[str, Any]:
-        """验证 and after Location理结果"""
+        """Validate and post-process ontology generation results."""
         if not isinstance(result, dict):
             raise ValueError("Ontology result must be an object")
 
