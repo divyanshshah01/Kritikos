@@ -28,12 +28,24 @@
           <span class="step-name">{{ $tm('main.stepNames')[currentStep - 1] }}</span>
         </div>
         <div class="step-divider"></div>
-        <span class="status-indicator" :class="statusClass">
+        <span class="status-indicator" :class="statusClass" :title="error ? error : statusText">
           <span class="dot"></span>
           {{ statusText }}
         </span>
       </div>
     </header>
+
+    <!-- Error Banner -->
+    <div v-if="error" class="main-error-banner">
+      <div class="main-error-content">
+        <span class="main-error-icon">⚠️</span>
+        <span class="main-error-message">{{ error }}</span>
+      </div>
+      <div class="main-error-actions">
+        <button class="main-error-retry" @click="initProject">Retry</button>
+        <button class="main-error-close" @click="error = ''" title="Dismiss">✕</button>
+      </div>
+    </div>
 
     <!-- Main Content Area -->
     <main class="content-area">
@@ -550,5 +562,66 @@ onUnmounted(() => {
 
 .panel-wrapper.left {
   border-right: 1px solid #EAEAEA;
+}
+
+/* Error Banner */
+.main-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFF5F5;
+  border-bottom: 1px solid #FED7D7;
+  padding: 10px 24px;
+  font-size: 13px;
+  color: #C53030;
+  z-index: 10;
+  animation: slideDown 0.25s ease-out;
+}
+
+.main-error-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.main-error-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.main-error-retry {
+  background: #E53E3E;
+  color: #FFF;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.main-error-retry:hover {
+  background: #C53030;
+}
+
+.main-error-close {
+  background: transparent;
+  border: none;
+  color: #A0AEC0;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.main-error-close:hover {
+  color: #4A5568;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 </style>

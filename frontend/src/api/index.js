@@ -45,8 +45,9 @@ service.interceptors.response.use(
     }
     
     // Handle network error
-    if (error.message === 'Network Error') {
-      console.error('Network error - please check your connection')
+    if (error.message === 'Network Error' || error.code === 'ERR_NETWORK') {
+      console.error('Network error - backend server unreachable')
+      error.message = 'Unable to connect to backend server. Please ensure the Kritikos backend is running on http://localhost:5001'
     }
 
     // Surface backend error message
