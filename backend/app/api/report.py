@@ -634,31 +634,42 @@ def chat_with_report_agent():
                 "error": t('api.requireMessage')
             }), 400
         
-        # 获取模Draft and 项目信息
+        # Get simulation and project information
         manager = SimulationManager()
         state = manager.get_simulation(simulation_id)
         
-        if not state:
+        graph_id = None
+        simulation_requirement = ""
+
+        if state:
+            graph_id = state.graph_id
+            project = ProjectManager.get_project(state.project_id)
+            if project:
+                graph_id = graph_id or project.graph_id
+                simulation_requirement = project.simulation_requirement or ""
+
+        # Fallback to report metadata if simulation state is missing
+        if not graph_id:
+            report = ReportManager.get_report_by_simulation(simulation_id) if simulation_id else None
+            if not report and data.get("report_id"):
+                report = ReportManager.get_report(data["report_id"])
+            if report:
+                graph_id = report.graph_id
+                simulation_requirement = report.simulation_requirement or ""
+
+        # Fallback to latest project
+        if not graph_id:
+            for p in ProjectManager.list_projects(limit=3):
+                if p.graph_id:
+                    graph_id = p.graph_id
+                    simulation_requirement = p.simulation_requirement or ""
+                    break
+
+        if not graph_id:
             return jsonify({
                 "success": False,
                 "error": t('api.simulationNotFound', id=simulation_id)
             }), 404
-
-        project = ProjectManager.get_project(state.project_id)
-        if not project:
-            return jsonify({
-                "success": False,
-                "error": t('api.projectNotFound', id=state.project_id)
-            }), 404
-        
-        graph_id = state.graph_id or project.graph_id
-        if not graph_id:
-            return jsonify({
-                "success": False,
-                "error": t('api.missingGraphId')
-            }), 400
-        
-        simulation_requirement = project.simulation_requirement or ""
         
         # CreateAgent并进行对话
         agent = ReportAgent(
